@@ -16,10 +16,10 @@ root.render(
         <Route path="/" element={<AuthPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route element={<Layout />}>
-          <Route path="/peserta/daftar" element={<DataPeserta />} />
+          <Route path="/admin/daftar-peserta" element={<DataPeserta />} />
         </Route>
         <Route element={<Layout />}>
-          <Route path="/peserta/dashboard" element={<DashboardPeserta />} />
+          <Route path="/admin/dashboard" element={<DashboardPeserta />} />
         </Route>
       </Routes>
     </BrowserRouter>

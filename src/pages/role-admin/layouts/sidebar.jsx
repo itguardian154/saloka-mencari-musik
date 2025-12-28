@@ -14,8 +14,8 @@ import { Link } from "react-router-dom"
 
 // contoh dummy data
 const menuItems = [
-  { title: "Dashboard", icon: Home, url: "/peserta/dashboard" },
-  { title: "Peserta", icon: Calendar, url: "/peserta/daftar" },
+  { title: "Dashboard", icon: Home, url: "/admin/dashboard" },
+  { title: "Peserta", icon: Calendar, url: "/admin/daftar-peserta" },
 ]
 
 export function AppSidebar() {
