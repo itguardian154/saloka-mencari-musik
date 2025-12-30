@@ -7,8 +7,11 @@ import SignUpPage from './pages/sign-up/sign-up.jsx';
 import Layout from './layout/layout-main.jsx';
 import DataPeserta from './pages/role-admin/peserta/daftar.jsx';
 import DashboardPeserta from './pages/role-admin/dashboard/dashboard.jsx';
+import FormPeserta from './pages/role-peserta/fom-pendaftaran/form-peserta.jsx';
+import Navbar from './components/navbar.jsx';
+import PesertaMain from './pages/role-peserta/peserta/peserta-main.jsx';
 
-const root = createRoot(document.getElementById('root')); // buat root dulu
+const root = createRoot(document.getElementById('root')); 
 root.render(
   <StrictMode>
     <BrowserRouter>
@@ -20,6 +23,12 @@ root.render(
         </Route>
         <Route element={<Layout />}>
           <Route path="/admin/dashboard" element={<DashboardPeserta />} />
+        </Route>
+        <Route element={<Navbar />}>
+          <Route path="/participant/:id" element={<PesertaMain />} />
+        </Route>
+        <Route element={<Navbar />}>
+          <Route path="/participant/form" element={<FormPeserta />} />
         </Route>
       </Routes>
     </BrowserRouter>

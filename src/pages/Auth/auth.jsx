@@ -1,3 +1,7 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import API_URLS from "../../../config";
+import CryptoJS from "crypto-js";
 import { mediaBanner } from "@/assets/image/banner";
 import { mediaLogo } from "@/assets/image/logo";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -5,14 +9,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InfoIcon } from "lucide-react";
-import { useEffect } from "react";
 
 
 const AuthPage = () => {
   useEffect(() => {
     document.title = "Login - Saloka Mencari Musik";
   });
-  
+
+  const navigate = useNavigate();
+  const secretKey = API_URLS.secretKey;
+
+  // Encrypt & Decrypt
+  const encryptData = (data, secretKey) => {
+    const encryptedData = CryptoJS.AES.encrypt(
+      JSON.stringify(data),
+      secretKey
+    ).toString();
+    return encryptedData;
+  };
+
   return (
     <>
       <section title="Login" />
@@ -63,9 +78,17 @@ const AuthPage = () => {
                       </AlertDescription>
                     </Alert>
                   </div>
-                  <Button type="submit" size={"lg"} className="w-full">
+                  <Button
+                    type="button"
+                    size="lg"
+                    className="w-full"
+                    onClick={() => navigate(`/participant/${encodeURIComponent(
+                      encryptData("1", secretKey)
+                    )}`)}
+                  >
                     Login Sekarang
                   </Button>
+
                   <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
                     <span className="relative z-10 bg-background px-2 text-muted-foreground">
                       © 2025 Saloka Theme Park
