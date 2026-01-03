@@ -7,6 +7,7 @@ import SignUpPage from './pages/sign-up/sign-up.jsx';
 import Layout from './layout/layout-main.jsx';
 import DataPeserta from './pages/role-admin/peserta/daftar.jsx';
 import DashboardPeserta from './pages/role-admin/dashboard/dashboard.jsx';
+import DetailPeserta from './pages/role-admin/peserta/detail-peserta.jsx';
 
 const root = createRoot(document.getElementById('root')); // buat root dulu
 root.render(
@@ -17,6 +18,9 @@ root.render(
         <Route path="/signup" element={<SignUpPage />} />
         <Route element={<Layout />}>
           <Route path="/admin/daftar-peserta" element={<DataPeserta />} />
+        </Route>
+         <Route element={<Layout />}>
+          <Route path="/admin/daftar-peserta/detail-peserta" element={<DetailPeserta />} />
         </Route>
         <Route element={<Layout />}>
           <Route path="/admin/dashboard" element={<DashboardPeserta />} />

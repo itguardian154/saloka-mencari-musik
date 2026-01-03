@@ -9,13 +9,13 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar"
 
-import { Home, Calendar, Inbox, Settings } from "lucide-react"
+import { Home, Calendar, Inbox, Settings, User } from "lucide-react"
 import { Link } from "react-router-dom"
 
 // contoh dummy data
 const menuItems = [
   { title: "Dashboard", icon: Home, url: "/admin/dashboard" },
-  { title: "Peserta", icon: Calendar, url: "/admin/daftar-peserta" },
+  { title: "Peserta", icon: User, url: "/admin/daftar-peserta" },
 ]
 
 export function AppSidebar() {
