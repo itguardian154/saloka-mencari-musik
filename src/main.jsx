@@ -10,6 +10,7 @@ import DashboardPeserta from './pages/role-admin/dashboard/dashboard.jsx';
 import FormPeserta from './pages/role-peserta/fom-pendaftaran/form-peserta.jsx';
 import Navbar from './components/navbar.jsx';
 import PesertaMain from './pages/role-peserta/peserta/peserta-main.jsx';
+import { ValidateOtpForm } from './pages/Auth/validate-otp-form.jsx';
 
 const root = createRoot(document.getElementById('root')); 
 root.render(
@@ -29,6 +30,9 @@ root.render(
         </Route>
         <Route element={<Navbar />}>
           <Route path="/participant/form" element={<FormPeserta />} />
+        </Route>
+        <Route element={<Navbar />}>
+          <Route path="/validate-otp" element={<ValidateOtpForm />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import UploadAudio from "@/pages/role-peserta/fom-pendaftaran/upload-audio"
 import ScreenRecord from "@/pages/role-peserta/fom-pendaftaran/screen-record"
+import Konfirmasi from "@/pages/role-peserta/fom-pendaftaran/konfirmasi"
 
 const stepIcons = [Music, Video, Check]
 
@@ -16,7 +17,7 @@ export function Stepper({ steps, currentStep, onStepChange }) {
       case 0:
         return <UploadAudio />
       case 1:
-        return <ScreenRecord />
+        return <Konfirmasi />
       default:
         return <UploadAudio />
     }
@@ -80,11 +81,19 @@ export function Stepper({ steps, currentStep, onStepChange }) {
         </Button>
 
         <Button
-          onClick={() => onStepChange(currentStep + 1)}
-          disabled={currentStep === steps.length - 1}
+          onClick={() => {
+            if (currentStep === steps.length - 1) {
+              // aksi submit
+              console.log("SUBMIT DATA")
+              // submitForm()
+            } else {
+              onStepChange(currentStep + 1)
+            }
+          }}
         >
-          {currentStep === steps.length - 1 ? "Finish" : "Next"}
+          {currentStep === steps.length - 1 ? "Submit" : "Next"}
         </Button>
+
       </div>
     </div>
   )

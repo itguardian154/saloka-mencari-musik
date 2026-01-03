@@ -5,7 +5,6 @@ import { useEffect, useState } from "react"
 
 const steps = [
   { title: "Musik", description: "Upload karya musik" },
-  { title: "Screen Record", description: "Upload screen record" },
   { title: "Konfirmasi", description: "Konfirmasi dan selesai" },
 ]
 

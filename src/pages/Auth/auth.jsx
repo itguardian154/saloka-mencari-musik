@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API_URLS from "../../../config";
 import CryptoJS from "crypto-js";
@@ -19,6 +19,8 @@ const AuthPage = () => {
   const navigate = useNavigate();
   const secretKey = API_URLS.secretKey;
 
+  const [valueForm, setValueFrom] = useState({ whatsapp: "" });
+
   // Encrypt & Decrypt
   const encryptData = (data, secretKey) => {
     const encryptedData = CryptoJS.AES.encrypt(
@@ -27,6 +29,62 @@ const AuthPage = () => {
     ).toString();
     return encryptedData;
   };
+
+  const handleOnChangeInput = (e) => {
+    const { name, value } = e.target;
+    let finalValue = value;
+
+    if (["personnel_count", "whatsapp", "age"].includes(name)) {
+      finalValue = value.replace(/\D/g, "");
+      setValueFrom({
+        ...valueForm,
+        [name]:
+          name == "whatsapp"
+            ? finalValue.length > 15
+              ? finalValue.slice(0, 15)
+              : finalValue
+            : finalValue,
+      });
+    }
+  };
+
+  const handleSubmitLogin = (e) => {
+    e.preventDefault()
+
+    // dummy whatsapp
+    const dummyWhatsapp = "085559647683"
+
+    // validasi sederhana
+    if (dummyWhatsapp.length < 10) {
+      showToast({
+        variant: "warning",
+        title: "Nomor Whatsapp Tidak Valid",
+        description: "Nomor Whatsapp harus minimal 10 digit",
+        actionText: "Close",
+        duration: 2000,
+      })
+      return
+    }
+
+    setTimeout(() => {
+
+      // showToast({
+      //   variant: "success",
+      //   title: "Login Berhasil",
+      //   description: "Yey! Login berhasil, lanjut ke verifikasi OTP",
+      //   actionText: "Close",
+      //   duration: 2000,
+      // })
+      alert("Yey! Login berhasil, lanjut ke verifikasi OTP")
+      // redirect ke halaman OTP
+      navigate(
+        `/validate-otp?whatsapp=${encodeURIComponent(
+              encryptData(dummyWhatsapp, secretKey))}`)
+
+    }, 1200) // simulasi loading 1.2 detik
+  }
+
+
 
   return (
     <>
@@ -47,6 +105,7 @@ const AuthPage = () => {
           <div className="flex flex-1 items-center justify-center">
             <div className="w-full max-w-sm">
               <form
+                onSubmit={(e) => handleSubmitLogin(e)}
               >
                 <div className="flex flex-col items-center gap-2 text-center">
                   <h1 className="text-2xl font-bold">Saloka Mencari Musik</h1>
@@ -67,6 +126,8 @@ const AuthPage = () => {
                       pattern="[0-9]*"
                       required
                       autoComplete="off"
+                      value={valueForm?.whatsapp}
+                      onChange={(e) => handleOnChangeInput(e)}
                       className="w-full h-11 placeholder:text-sm"
                     />
                     <Alert variant="info">
@@ -78,20 +139,12 @@ const AuthPage = () => {
                       </AlertDescription>
                     </Alert>
                   </div>
-                  <Button
-                    type="button"
-                    size="lg"
-                    className="w-full"
-                    onClick={() => navigate(`/participant/${encodeURIComponent(
-                      encryptData("1", secretKey)
-                    )}`)}
-                  >
+                  <Button type="submit" size={"lg"} className="w-full">
                     Login Sekarang
                   </Button>
-
                   <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
                     <span className="relative z-10 bg-background px-2 text-muted-foreground">
-                      © 2025 Saloka Theme Park
+                      © 2026 Saloka Theme Park
                     </span>
                   </div>
                 </div>

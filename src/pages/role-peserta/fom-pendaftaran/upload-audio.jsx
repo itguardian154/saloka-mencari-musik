@@ -117,7 +117,8 @@ export default function UploadAudio() {
         </div>
 
         <div className="w-full flex flex-col gap-2">
-          <div className="relative group flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-white/30 bg-white/5 px-6 py-10 text-center transition border-slate-300 hover:bg-white/10">
+          <Label htmlFor="genre">Upload File Musik</Label>
+          <div className="relative group flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-300 bg-white/5 px-6 py-10 text-center transition hover:bg-white/10">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gossamer-50 text-gossamer-400">
               <Music size={28} />
             </div>
@@ -152,13 +153,25 @@ export default function UploadAudio() {
           </div>
         </div>
         <div className="w-full flex flex-col gap-2">
+          <Label htmlFor="link">Link Google Drive</Label>
+          <Input
+            id="link"
+            name="link"
+            type="text"
+            placeholder="Masukan link"
+            required
+            autoComplete="off"
+            className="w-full h-11 placeholder:text-sm"
+          />
+        </div>
+        <div className="w-full flex flex-col gap-2">
           <Alert variant="info">
             <InfoIcon className="-mx-2" />
             <AlertTitle>Informasi Penting</AlertTitle>
             <AlertDescription>
               <ul className="list-inside list-disc text-sm">
                 <li>
-                  Lagu bertema “Keceriaan Rekreasi Keluarga” (muatan lagu dapat mengangkat konsep rekreasi keluarga di alam bebas yang diangkat melalui seni, teknologi, budaya, dll secara filosofis, fantasi, momen sesaat, ataupun nostalgia memory).
+                  Harap cek lagi file musik dan url Google Drive Anda. Pastikan sudah sesuai dengan ketentuan
                 </li>
                 <li>
                   Lagu berdurasi 3–5 menit.

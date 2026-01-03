@@ -30,7 +30,7 @@ export default function ScreenRecord() {
         </p>
       </div>
 
-      <div className="relative group flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-white/30 bg-white/5 px-6 py-10 text-center transition border-slate-300 hover:bg-white/10">
+      <div className="relative group flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-300 bg-white/5 px-6 py-10 text-center transition hover:bg-white/10">
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gossamer-50 text-gossamer-400">
           <Video size={28} />
         </div>

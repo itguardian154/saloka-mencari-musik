@@ -1,3 +1,3 @@
-import bannerSoundloka from "./SOUNDLOKA 2025 - DESKTOP (2700x3072).jpg";
+import bannerSoundloka from "./2700 x 3072 BANNER WEBSITE.png";
 
 export const mediaBanner = [bannerSoundloka, ];
