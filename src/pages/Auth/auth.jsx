@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API_URLS from "../../../config";
 import CryptoJS from "crypto-js";
+import axios from "axios";
 import { mediaBanner } from "@/assets/image/banner";
 import { mediaLogo } from "@/assets/image/logo";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -9,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InfoIcon } from "lucide-react";
-
+import { toast } from "sonner"
 
 const AuthPage = () => {
   useEffect(() => {
@@ -18,8 +19,9 @@ const AuthPage = () => {
 
   const navigate = useNavigate();
   const secretKey = API_URLS.secretKey;
-
-  const [valueForm, setValueFrom] = useState({ whatsapp: "" });
+  const [valueForm, setValueForm] = useState({
+    phone: "",
+  });
 
   // Encrypt & Decrypt
   const encryptData = (data, secretKey) => {
@@ -30,60 +32,33 @@ const AuthPage = () => {
     return encryptedData;
   };
 
-  const handleOnChangeInput = (e) => {
-    const { name, value } = e.target;
-    let finalValue = value;
-
-    if (["personnel_count", "whatsapp", "age"].includes(name)) {
-      finalValue = value.replace(/\D/g, "");
-      setValueFrom({
-        ...valueForm,
-        [name]:
-          name == "whatsapp"
-            ? finalValue.length > 15
-              ? finalValue.slice(0, 15)
-              : finalValue
-            : finalValue,
-      });
-    }
-  };
-
   const handleSubmitLogin = (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    // dummy whatsapp
-    const dummyWhatsapp = "085559647683"
+    toast.promise(
+      axios.post(`${API_URLS.mencariMusik}/auth/request-otp`, {
+        phone: valueForm.phone,
+      }),
+      {
+        loading: "Mengirim OTP...",
+        success: (response) => {
+          if (response.status === 200 && response.data.status === true) {
+            navigate(
+              "/validate-otp/" +
+              encodeURIComponent(encryptData(valueForm.phone, secretKey))
+            );
+            return response.data.message || "OTP berhasil dikirim";
+          }
 
-    // validasi sederhana
-    if (dummyWhatsapp.length < 10) {
-      showToast({
-        variant: "warning",
-        title: "Nomor Whatsapp Tidak Valid",
-        description: "Nomor Whatsapp harus minimal 10 digit",
-        actionText: "Close",
-        duration: 2000,
-      })
-      return
-    }
-
-    setTimeout(() => {
-
-      // showToast({
-      //   variant: "success",
-      //   title: "Login Berhasil",
-      //   description: "Yey! Login berhasil, lanjut ke verifikasi OTP",
-      //   actionText: "Close",
-      //   duration: 2000,
-      // })
-      alert("Yey! Login berhasil, lanjut ke verifikasi OTP")
-      // redirect ke halaman OTP
-      navigate(
-        `/validate-otp?whatsapp=${encodeURIComponent(
-              encryptData(dummyWhatsapp, secretKey))}`)
-
-    }, 1200) // simulasi loading 1.2 detik
-  }
-
+          throw new Error(response.data.message || "Gagal mengirim OTP");
+        },
+        error: (error) =>
+          error?.response?.data?.message ||
+          error?.message ||
+          "Terjadi kesalahan",
+      }
+    );
+  };
 
 
   return (
@@ -123,11 +98,13 @@ const AuthPage = () => {
                       type="text"
                       placeholder="Masukan nomor WhatsApp"
                       inputMode="numeric"
-                      pattern="[0-9]*"
-                      required
                       autoComplete="off"
-                      value={valueForm?.whatsapp}
-                      onChange={(e) => handleOnChangeInput(e)}
+                      required
+                      value={valueForm.phone || ""}
+                      onChange={(e) => {
+                        const onlyNumber = e.target.value.replace(/[^0-9]/g, "");
+                        setValueForm({ ...valueForm, phone: onlyNumber });
+                      }}
                       className="w-full h-11 placeholder:text-sm"
                     />
                     <Alert variant="info">
