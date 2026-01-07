@@ -24,10 +24,31 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { set } from "date-fns";
+import axios from "axios";
+import API_URLS from "../../../../config";
+import Swal from "sweetalert2";
+import CryptoJS from "crypto-js";
 
 
 export default function DataPeserta() {
-  const [DataPeserta, setDataPeserta] = useState([]);
+  useEffect(() => {
+    document.title = "Event - Soundloka 2025";
+  }, []);
+
+  const [detailUser, setDetailUser] = useState({
+    id_user: "",
+    name_user: localStorage.getItem("namakaryawan"),
+    id_dept: localStorage.getItem("idDepartemen"),
+    dept: localStorage.getItem("departemen"),
+    id_sub_dept: localStorage.getItem("id_sub_dept"),
+    sub_dept: localStorage.getItem("sub_departemen"),
+    id_grade: localStorage.getItem("id_grade"),
+    pos: localStorage.getItem("pos"),
+  });
+
+  const secretKey = API_URLS.secretKey;
+  const [dataPeserta, setDataPeserta] = useState([]);
   const [modalOpen, setModalOpen] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(null);
   const [filterShow, setFilterShow] = useState(false);
@@ -45,17 +66,101 @@ export default function DataPeserta() {
   const [changeData, setChangeData] = useState(false);
   const [detailPeserta, setDetailPeserta] = useState({});
   const [date, setDate] = useState(undefined)
-  const [filterData, setFilterData] = useState({
-    provinsi: "",
-    kota: "",
-    genre: "",
-  })
+  const [filterData, setFilterData] = useState({})
 
-  const wilayah = {
-    "Jawa Tengah": ["Semarang", "Solo", "Magelang"],
-    "Jawa Barat": ["Bandung", "Bekasi", "Bogor"],
-    "DKI Jakarta": ["Jakarta Pusat", "Jakarta Selatan"],
-  }
+  const encryptData = (data, secretKey) => {
+    const encryptedData = CryptoJS.AES.encrypt(
+      JSON.stringify(data),
+      secretKey
+    ).toString();
+    return encryptedData;
+  };
+
+  const saveRouteSession = (data, secretKey) => {
+    const encryptedData = encryptData(data, secretKey);
+    sessionStorage.setItem("routetoSession", encryptedData);
+  };
+
+  useEffect(() => {
+    saveRouteSession(location.pathname, secretKey);
+  }, []);
+
+  const decryptData = (data, secretKey) => {
+    const bytes = CryptoJS.AES.decrypt(data, secretKey);
+    const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
+    return decryptedData;
+  };
+
+  const encryptedEmpatDigit = (secretKey) => {
+    const encryptedData = localStorage.getItem("username");
+    if (encryptedData) {
+      const decryptedData = decryptData(encryptedData, secretKey);
+      return JSON.parse(decryptedData);
+    }
+    return null;
+  };
+
+  useEffect(() => {
+    setDetailUser({
+      id_user: encryptedEmpatDigit(secretKey),
+      name_user: localStorage.getItem("namakaryawan"),
+      id_dept: localStorage.getItem("idDepartemen"),
+      dept: localStorage.getItem("departemen"),
+      id_sub_dept: localStorage.getItem("id_sub_dept"),
+      sub_dept: localStorage.getItem("sub_departemen"),
+      id_grade: localStorage.getItem("id_grade"),
+      pos: localStorage.getItem("pos"),
+    });
+  }, []);
+
+  const alertMessage = (type, title, message) => {
+    Swal.fire({
+      icon: type,
+      title: title,
+      text: message,
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  };
+
+  const alertLoading = () => {
+    Swal.fire({
+      title: "Sedang diproses..",
+      text: "Jangan tutup halaman web ini.",
+      timerProgressBar: true,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+  };
+
+  const clearData = () => {
+    setDataPeserta([]);
+    setCurrentPage(1);
+    setPageData(1);
+    setLastPage(1);
+    setTotalData(0);
+    setItemPerPage(10);
+  };
+
+  const sortBySortOrder = (sortBy) => {
+    setSortBy(sortBy);
+    setSortOrder((prev) => (prev == "asc" ? "desc" : "asc"));
+  };
+
+  const handleDropdownOpen = (index) => {
+    setDropdownOpen((prevDropdownOpen) =>
+      prevDropdownOpen === index ? null : index
+    );
+    setSearchData("");
+  };
+  // const wilayah = {
+  //   "Jawa Tengah": ["Semarang", "Solo", "Magelang"],
+  //   "Jawa Barat": ["Bandung", "Bekasi", "Bogor"],
+  //   "DKI Jakarta": ["Jakarta Pusat", "Jakarta Selatan"],
+  // }
 
   const navigate = useNavigate()
   const handleOpenDetailPeserta = (data) => {
@@ -63,6 +168,52 @@ export default function DataPeserta() {
       state: data, // kirim data peserta (frontend dulu)
     })
   }
+
+  useEffect(() => {
+    const getDataPeserta = async () => {
+      try {
+        const response = await axios.get(
+          `${API_URLS.mencariMusik}/composers?page=${pageData}&search=${searchData}`
+        );
+
+        if (response.status === 200) {
+          if (response.data.data.data?.length > 0) {
+            setLoadingData(false);
+            setDataPeserta(response.data.data.data);
+            setCurrentPage(response.data.data.current_page);
+            setLastPage(response.data.data.last_page);
+            setTotalData(response.data.data.total);
+            setFromPage(response.data.data.from);
+            setToPage(response.data.data.to);
+          } else {
+            setLoadingData(false);
+            clearData();
+          }
+        } else {
+          setLoadingData(false);
+          clearData();
+        }
+      } catch (error) {
+        setLoadingData(false);
+        clearData();
+        console.log(error);
+        console.log(
+          error?.response?.data?.message || "Error catching get data peserta"
+        );
+      }
+    };
+
+    getDataPeserta();
+  }, [
+    pageData,
+    searchData,
+    sortBy,
+    sortOrder,
+    itemPerPage,
+    filterData,
+    changeData,
+  ]);
+
 
 
 
@@ -357,51 +508,82 @@ export default function DataPeserta() {
               </th>
             </tr>
           </thead>
-          <tbody>
-            <tr className="bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-600">
-              <td
-                className="pl-6 pr-3 py-3 text-sm tracking-wide text-center border-x-2 border-l-0 border-gray-200 dark:border-gray-600 whitespace-nowrap"> 1 </td>
+          <tbody className="border-b-2 border-gray-200 dark:border-gray-600">
+            {loadingData && (
+              <tr className="bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-600">
+                <td
+                  className="p-3 text-sm tracking-wide text-center border-gray-200 dark:border-gray-600"
+                  colSpan={11}
+                >
+                  Proses mengambil data...
+                </td>
+              </tr>
+            )}
 
-              <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                28122025
-              </td>
-              <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                Mawar
-              </td>
-              <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                082142959615
-              </td>
-              <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                mawar@mail.com
-              </td>
-              <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                Banyubiru
-              </td>
-              <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                Aseek
-              </td>
-              <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                Dangdut
-              </td>
-              <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                <span className="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300 whitespace-nowrap">
-                  Created
-                </span>
-              </td>
-              <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                <div className="w-full flex items-center justify-center gap-2 px-2">
-                  <Tooltip title="Detail Peserta">
-                    <button
-                      type="button"
-                      onClick={() => handleOpenDetailPeserta(detailPeserta)}
-                      className="w-8 h-8 flex items-center justify-center bg-amber-100 text-amber-800 text-sm font-medium  rounded-lg dark:bg-amber-900 dark:text-amber-300 hover:bg-amber-600 hover:text-white dark:hover:bg-amber-700 dark:hover:text-white"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                  </Tooltip>
-                </div>
-              </td>
-            </tr>
+            {!loadingData && dataPeserta?.length === 0 && (
+              <tr className="bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-600">
+                <td
+                  className="p-3 text-sm tracking-wide text-center border-gray-200 dark:border-gray-600"
+                  colSpan={11}
+                >
+                  Data saat ini kosong
+                </td>
+              </tr>
+            )}
+
+            {!loadingData &&
+              dataPeserta?.map((item, index) => (
+                <tr className="bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-600">
+                  <td
+                    className="pl-6 pr-3 py-3 text-sm tracking-wide text-center border-x-2 border-l-0 border-gray-200 dark:border-gray-600 whitespace-nowrap"
+                    key={index}
+                  >
+                    {index + 1}
+                  </td>
+                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
+                    07012025
+                  </td>
+                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
+                    {item?.name}
+                  </td>
+                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
+                    {item?.whatsapp}
+                  </td>
+                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
+                    {item?.email}
+                  </td>
+                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
+                    {item?.district}, {item?.city}, {item?.province}
+                  </td>
+                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
+                    {item?.email}
+                  </td>
+                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
+                    aseek
+                  </td>
+                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
+                    dangdut
+                  </td>
+                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
+                    <span className="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300 whitespace-nowrap">
+                      Created
+                    </span>
+                  </td>
+                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
+                    <div className="w-full flex items-center justify-center gap-2 px-2">
+                      <Tooltip title="Detail Peserta">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenDetailPeserta(detailPeserta)}
+                          className="w-8 h-8 flex items-center justify-center bg-amber-100 text-amber-800 text-sm font-medium  rounded-lg dark:bg-amber-900 dark:text-amber-300 hover:bg-amber-600 hover:text-white dark:hover:bg-amber-700 dark:hover:text-white"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </Tooltip>
+                    </div>
+                  </td>
+                </tr>
+              ))}
           </tbody>
 
         </table>
@@ -409,73 +591,78 @@ export default function DataPeserta() {
 
       {/* mobile view */}
       <div className="block lg:hidden space-y-4">
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm">
+        {!loadingData && dataPeserta?.map((item) => (
+          <div
+            key={item.id}
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm"
+          >
 
-          {/* HEADER */}
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                Mawar
-              </p>
-              <p className="text-xs text-gray-500">
-                ID: 28122025
-              </p>
-            </div>
+            {/* HEADER */}
+            <div className="flex items-start justify-between mb-3">
+              <div>
+                <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
+                  {item?.name}
+                </p>
+                <p className="text-xs text-gray-500">
+                  ID: 28122025
+                </p>
+              </div>
 
-            <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
-              Created
-            </span>
-          </div>
-
-          {/* DATA UTAMA */}
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-500">WhatsApp</span>
-              <span>082142959615</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span className="text-gray-500">Email</span>
-              <span className="truncate max-w-[160px]">
-                mawar@mail.com
+              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
+                Created
               </span>
             </div>
 
-            <div className="flex justify-between">
-              <span className="text-gray-500">Alamat</span>
-              <span>Banyubiru</span>
+            {/* DATA UTAMA */}
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">WhatsApp</span>
+                <span>{item?.whatsapp}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-gray-500">Email</span>
+                <span className="truncate max-w-[160px]">
+                  {item?.email}
+                </span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-gray-500">Alamat</span>
+                <span>{item?.district}, {item?.city}, {item?.province}</span>
+              </div>
             </div>
-          </div>
 
-          {/* DETAIL KARYA */}
-          <div className="mt-4 border-t pt-3 space-y-2 text-sm">
-            <p className="font-medium text-gray-700 dark:text-gray-200">
-              Detail Karya
-            </p>
+            {/* DETAIL KARYA */}
+            <div className="mt-4 border-t pt-3 space-y-2 text-sm">
+              <p className="font-medium text-gray-700 dark:text-gray-200">
+                Detail Karya
+              </p>
 
-            <div className="flex justify-between">
-              <span className="text-gray-500">Judul</span>
-              <span>Aseek</span>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Judul</span>
+                <span>Aseek</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span className="text-gray-500">Genre</span>
+                <span>Dangdut</span>
+              </div>
             </div>
 
-            <div className="flex justify-between">
-              <span className="text-gray-500">Genre</span>
-              <span>Dangdut</span>
+            {/* ACTION */}
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => handleOpenDetailPeserta(detailPeserta)}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-600 hover:text-white transition"
+              >
+                <Eye className="w-4 h-4" />
+                Detail
+              </button>
             </div>
-          </div>
 
-          {/* ACTION */}
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={() => handleOpenDetailPeserta(detailPeserta)}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-600 hover:text-white transition"
-            >
-              <Eye className="w-4 h-4" />
-              Detail
-            </button>
           </div>
-
-        </div>
+        ))}
       </div>
 
     </>

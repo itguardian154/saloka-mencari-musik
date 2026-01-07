@@ -18,37 +18,69 @@ export default function DetailPeserta() {
     const [openAudioIndex, setOpenAudioIndex] = useState(null);
     const [openLyricIndex, setOpenLyricIndex] = useState(null);
     const [openDeskripsiIndex, setOpenDeskripsiIndex] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [detailpeserta, setDetailPeserta] = useState({});
+    const [audio, setAudio] = useState([]);
+    const [lyric, setLyric] = useState([]);
+    const [searchData, setSearchData] = useState("");
+    const [pageData, setPageData] = useState(1);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [fromPage, setFromPage] = useState("");
+    const [toPage, setToPage] = useState("");
+    const [lastPage, setLastPage] = useState(1);
+    const [totalData, setTotalData] = useState(0);
+    const [sortBy, setSortBy] = useState("");
+    const [sortOrder, setSortOrder] = useState("");
+    const [itemPerPage, setItemPerPage] = useState(25);
+    const [changeData, setChangeData] = useState(false);
+    const [filterData, setFilterData] = useState({});
 
+    const handleAudioClick = (index) => {
+        setOpenAudioIndex(index === openAudioIndex ? null : index);
+    };
+
+    const handleLyricClick = (index) => {
+        setOpenLyricIndex(index === openLyricIndex ? null : index);
+    };
+
+    const handleDeskripsiClick = (index) => {
+        setOpenDeskripsiIndex(index === openDeskripsiIndex ? null : index);
+    };
+    
+    const clearData = () => {
+        setPeserta([]);
+        setCurrentPage(1);
+    }
 
 
     // dummy fallback (kalau user refresh halaman)
-    const peserta = state?.peserta || {
-        nama: "Mawar",
-        usia: "25 - 34 Tahun",
-        email: "mawar@mail.com",
-        whatsapp: "082142959615",
-        domisili: "Semarang",
-        lagu: [
-            {
-                judul: "Cinta Tak Direstui",
-                genre: "Pop",
-                deskripsi: "Lagu tentang cinta yang terhalang restu Lagu tentang cinta yang terhalang restu Lagu tentang cinta yang terhalang restu Lagu tentang cinta yang terhalang restu Lagu tentang cinta yang terhalang restu Lagu tentang cinta yang terhalang restu",
-                lirik: "Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam",
-                screenRecord: "/dummy/video.mp4",
-                fileLagu: "/dummy/audio.mp3",
+    // const peserta = state?.peserta || {
+    //     nama: "Mawar",
+    //     usia: "25 - 34 Tahun",
+    //     email: "mawar@mail.com",
+    //     whatsapp: "082142959615",
+    //     domisili: "Semarang",
+    //     lagu: [
+    //         {
+    //             judul: "Cinta Tak Direstui",
+    //             genre: "Pop",
+    //             deskripsi: "Lagu tentang cinta yang terhalang restu Lagu tentang cinta yang terhalang restu Lagu tentang cinta yang terhalang restu Lagu tentang cinta yang terhalang restu Lagu tentang cinta yang terhalang restu Lagu tentang cinta yang terhalang restu",
+    //             lirik: "Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam",
+    //             screenRecord: "/dummy/video.mp4",
+    //             fileLagu: "/dummy/audio.mp3",
 
-            },
-            {
-                judul: "Malam Sunyi",
-                genre: "Jazz",
-                deskripsi: "Nuansa malam yang tenang",
-                lirik: "Di bawah lampu kota...",
-                screenRecord: "/dummy/video2.mp4",
-                fileLagu: "/dummy/audio2.mp3",
+    //         },
+    //         {
+    //             judul: "Malam Sunyi",
+    //             genre: "Jazz",
+    //             deskripsi: "Nuansa malam yang tenang",
+    //             lirik: "Di bawah lampu kota...",
+    //             screenRecord: "/dummy/video2.mp4",
+    //             fileLagu: "/dummy/audio2.mp3",
 
-            },
-        ],
-    }
+    //         },
+    //     ],
+    // }
 
     const handleDownloadAudio = (url, filename = "lagu") => {
         const link = document.createElement("a")
@@ -82,7 +114,7 @@ export default function DetailPeserta() {
                 <CardHeader>
                     <CardTitle>Data Akun Peserta</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <CardContent className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                         <p className="text-muted-foreground">Nama Peserta</p>
                         <p className="font-medium">{peserta.nama}</p>
