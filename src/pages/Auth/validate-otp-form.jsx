@@ -27,6 +27,7 @@ export function ValidateOtpForm() {
     ).toString();
   };
 
+
   const decryptData = (data, secretKey) => {
     const bytes = CryptoJS.AES.decrypt(data, secretKey);
     const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
@@ -51,16 +52,30 @@ export function ValidateOtpForm() {
       {
         loading: "Memverifikasi OTP...",
         success: (response) => {
-          if (response.status === 200 && response.data.status === true) {
-            navigate(
-              `/participant/${encodeURIComponent(
-                encryptData("1", secretKey)
-              )}`
-            );
-            return response.data.message || "OTP berhasil diverifikasi";
+          const { status, data, message } = response.data;
+
+          if (response.status === 200 && status === true) {
+            const { token, type_user } = data;
+
+            localStorage.setItem("token", token);
+            localStorage.setItem("type_user", type_user);
+
+            if (type_user === "composer") {
+              const userId = data.user.id;
+
+              navigate(
+                `/participant/${encodeURIComponent(
+                  encryptData(userId, secretKey)
+                )}`
+              );
+            } else if (type_user === "admin") {
+              navigate("/admin/daftar-peserta");
+            }
+
+            return message || "OTP berhasil diverifikasi";
           }
 
-          throw new Error(response.data.message || "OTP tidak valid");
+          throw new Error(message || "OTP tidak valid");
         },
         error: (error) => {
           const data = error?.response?.data;
@@ -73,10 +88,8 @@ export function ValidateOtpForm() {
             return data.message;
           }
 
-          // 3. fallback
           return error?.message || "Verifikasi OTP gagal";
         },
-
       }
     );
   };

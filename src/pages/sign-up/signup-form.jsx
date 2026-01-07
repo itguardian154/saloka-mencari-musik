@@ -208,6 +208,7 @@ const SignUpForm = () => {
             inputMode="numeric"
             pattern="[0-9]*"
             required
+            placeholder="Masukan nomor whatsapp"
             value={valueForm.whatsapp}
             onChange={(e) => {
               const onlyNumber = e.target.value.replace(/[^0-9]/g, "");
