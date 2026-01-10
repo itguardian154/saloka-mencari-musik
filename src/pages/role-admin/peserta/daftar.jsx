@@ -31,22 +31,20 @@ import Swal from "sweetalert2";
 import CryptoJS from "crypto-js";
 
 
-export default function DataPeserta() {
-  useEffect(() => {
-    document.title = "Event - Soundloka 2025";
-  }, []);
+export default function DataPeserta({ id }) {
 
   const [detailUser, setDetailUser] = useState({
-    id_user: "",
-    name_user: localStorage.getItem("namakaryawan"),
-    id_dept: localStorage.getItem("idDepartemen"),
-    dept: localStorage.getItem("departemen"),
-    id_sub_dept: localStorage.getItem("id_sub_dept"),
-    sub_dept: localStorage.getItem("sub_departemen"),
-    id_grade: localStorage.getItem("id_grade"),
-    pos: localStorage.getItem("pos"),
+    token: localStorage.getItem("token"),
   });
 
+  useEffect(() => {
+    setDetailUser({
+      token: localStorage.getItem("token"),
+    });
+  }, []);
+
+
+  console.log(detailUser.token);
   const secretKey = API_URLS.secretKey;
   const [dataPeserta, setDataPeserta] = useState([]);
   const [modalOpen, setModalOpen] = useState(null);
@@ -67,51 +65,22 @@ export default function DataPeserta() {
   const [detailPeserta, setDetailPeserta] = useState({});
   const [date, setDate] = useState(undefined)
   const [filterData, setFilterData] = useState({})
+  const [listProvinsi, setListProvinsi] = useState([]);
+  const [listKota, setListKota] = useState([]);
+  const [valueForm, setValueForm] = useState({
+    province: "",
+    prov_id: "",
+    city_id: "",
+    city: "",
+  });
+
 
   const encryptData = (data, secretKey) => {
-    const encryptedData = CryptoJS.AES.encrypt(
+    return CryptoJS.AES.encrypt(
       JSON.stringify(data),
       secretKey
     ).toString();
-    return encryptedData;
   };
-
-  const saveRouteSession = (data, secretKey) => {
-    const encryptedData = encryptData(data, secretKey);
-    sessionStorage.setItem("routetoSession", encryptedData);
-  };
-
-  useEffect(() => {
-    saveRouteSession(location.pathname, secretKey);
-  }, []);
-
-  const decryptData = (data, secretKey) => {
-    const bytes = CryptoJS.AES.decrypt(data, secretKey);
-    const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
-    return decryptedData;
-  };
-
-  const encryptedEmpatDigit = (secretKey) => {
-    const encryptedData = localStorage.getItem("username");
-    if (encryptedData) {
-      const decryptedData = decryptData(encryptedData, secretKey);
-      return JSON.parse(decryptedData);
-    }
-    return null;
-  };
-
-  useEffect(() => {
-    setDetailUser({
-      id_user: encryptedEmpatDigit(secretKey),
-      name_user: localStorage.getItem("namakaryawan"),
-      id_dept: localStorage.getItem("idDepartemen"),
-      dept: localStorage.getItem("departemen"),
-      id_sub_dept: localStorage.getItem("id_sub_dept"),
-      sub_dept: localStorage.getItem("sub_departemen"),
-      id_grade: localStorage.getItem("id_grade"),
-      pos: localStorage.getItem("pos"),
-    });
-  }, []);
 
   const alertMessage = (type, title, message) => {
     Swal.fire({
@@ -164,42 +133,46 @@ export default function DataPeserta() {
 
   const navigate = useNavigate()
   const handleOpenDetailPeserta = (data) => {
-    navigate("/admin/daftar-peserta/detail-peserta", {
+    navigate(`/admin/daftar-peserta/detail-peserta/${id}`, {
       state: data, // kirim data peserta (frontend dulu)
     })
   }
 
+
   useEffect(() => {
+    if (!detailUser?.token) return;
+
     const getDataPeserta = async () => {
+      setLoadingData(true);
       try {
         const response = await axios.get(
-          `${API_URLS.mencariMusik}/composers?page=${pageData}&search=${searchData}`
+          `${API_URLS.mencariMusik}/composers?page=${pageData}&search=${searchData}&sortBy=${sortBy}&sortOrder=${sortOrder}&itemPerPage=${itemPerPage}&province=${!filterData.province ? '' : filterData.province}
+          &city=${!filterData.city ? '' : filterData.city}`,
+          {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${detailUser.token}`,
+            },
+          }
         );
 
-        if (response.status === 200) {
-          if (response.data.data.data?.length > 0) {
-            setLoadingData(false);
-            setDataPeserta(response.data.data.data);
-            setCurrentPage(response.data.data.current_page);
-            setLastPage(response.data.data.last_page);
-            setTotalData(response.data.data.total);
-            setFromPage(response.data.data.from);
-            setToPage(response.data.data.to);
-          } else {
-            setLoadingData(false);
-            clearData();
-          }
+        if (response.status === 200 && response.data.status === true) {
+          setDataPeserta(response.data.data ?? []);
+          setCurrentPage(response.data.current_page);
+          setLastPage(response.data.last_page);
+          setTotalData(response.data.total);
+          setFromPage(response.data.from);
+          setToPage(response.data.to);
         } else {
-          setLoadingData(false);
           clearData();
         }
       } catch (error) {
-        setLoadingData(false);
         clearData();
-        console.log(error);
         console.log(
           error?.response?.data?.message || "Error catching get data peserta"
         );
+      } finally {
+        setLoadingData(false);
       }
     };
 
@@ -212,8 +185,85 @@ export default function DataPeserta() {
     itemPerPage,
     filterData,
     changeData,
+    detailUser?.token
   ]);
 
+
+  //Handle Get Data Provinsi Start
+  const [dataProvince, setDataProvince] = useState([]);
+
+  useEffect(() => {
+    const getDataProvince = async () => {
+      try {
+        const response = await axios.get(
+          `${API_URLS.crm}api/get_provinces`
+        );
+
+        if (response.status === 200 && response.data.status === "success") {
+          setDataProvince(response.data.data);
+        } else {
+          setDataProvince([]);
+        }
+      } catch (error) {
+        setDataProvince([]);
+        console.log(error);
+      }
+    };
+
+    getDataProvince();
+  }, []);
+
+
+  const handleSelectedProvice = (prov) => {
+    setValueForm((prev) => ({
+      ...prev,
+      province: prov.prov_name,
+      prov_id: prov.prov_id,
+    }));
+
+    setOpenCombobox("");
+  };
+  // Get Data Provinsi End
+
+  //Handle Get Data City Start
+  const [dataCity, setDataCity] = useState([]);
+
+  useEffect(() => {
+    if (!valueForm.prov_id) {
+      setDataCity([]);
+      return;
+    }
+
+    const getDataCity = async () => {
+      try {
+        const response = await axios.get(
+          `${API_URLS.crm}api/get_cities?id_province=${valueForm.prov_id}`
+        );
+
+        if (response.status === 200 && response.data.status === "success") {
+          setDataCity(response.data.data);
+        } else {
+          setDataCity([]);
+        }
+      } catch (error) {
+        setDataCity([]);
+        console.log(error);
+      }
+    };
+
+    getDataCity();
+  }, [valueForm.prov_id]);
+
+  const handleSelectedCity = (city) => {
+    setValueForm((prev) => ({
+      ...prev,
+      city: city.city_name,
+      city_id: city.city_id,
+    }));
+
+    setOpenCombobox("");
+  };
+  // Get Data City End
 
 
 
@@ -328,18 +378,40 @@ export default function DataPeserta() {
             <Label className="font-medium text-sm">Provinsi</Label>
 
             <Select
-              value={filterData.provinsi}
-              onValueChange={(value) =>
-                setFilterData({ ...filterData, provinsi: value, kota: "" })
-              }
+              value={valueForm.prov_id || "all"}
+              onValueChange={(value) => {
+                if (value === "all") {
+                  setValueForm({
+                    province: "",
+                    prov_id: "",
+                    city: "",
+                    city_id: "",
+                  });
+                  return;
+                }
+
+                const selectedProv = dataProvince.find(
+                  (prov) => prov.prov_id === value
+                );
+
+                setValueForm({
+                  province: selectedProv?.prov_name || "",
+                  prov_id: selectedProv?.prov_id || "",
+                  city: "",
+                  city_id: "",
+                });
+              }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Pilih Provinsi" />
+                <SelectValue placeholder="Semua Provinsi" />
               </SelectTrigger>
+
               <SelectContent>
-                {Object.keys(wilayah).map((prov) => (
-                  <SelectItem key={prov} value={prov}>
-                    {prov}
+                <SelectItem value="all">Semua Provinsi</SelectItem>
+
+                {dataProvince.map((prov) => (
+                  <SelectItem key={prov.prov_id} value={prov.prov_id}>
+                    {prov.prov_name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -349,24 +421,42 @@ export default function DataPeserta() {
           {/* KOTA */}
           <div className="w-full flex flex-col gap-2">
             <Label className="font-medium text-sm">Kota</Label>
-
             <Select
-              value={filterData.kota}
-              disabled={!filterData.provinsi}
-              onValueChange={(value) =>
-                setFilterData({ ...filterData, kota: value })
-              }
+              value={valueForm.city_id || "all"}
+              disabled={!valueForm.prov_id}
+              onValueChange={(value) => {
+                if (value === "all") {
+                  setValueForm((prev) => ({
+                    ...prev,
+                    city: "",
+                    city_id: "",
+                  }));
+                  return;
+                }
+
+                const selectedCity = dataCity.find(
+                  (city) => city.city_id === value
+                );
+
+                setValueForm((prev) => ({
+                  ...prev,
+                  city: selectedCity?.city_name || "",
+                  city_id: selectedCity?.city_id || "",
+                }));
+              }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Pilih Kota" />
+                <SelectValue placeholder="Semua Kota" />
               </SelectTrigger>
+
               <SelectContent>
-                {filterData.provinsi &&
-                  wilayah[filterData.provinsi].map((kota) => (
-                    <SelectItem key={kota} value={kota}>
-                      {kota}
-                    </SelectItem>
-                  ))}
+                <SelectItem value="all">Semua Kota</SelectItem>
+
+                {dataCity.map((city) => (
+                  <SelectItem key={city.city_id} value={city.city_id}>
+                    {city.city_name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -395,9 +485,6 @@ export default function DataPeserta() {
 
         </div>
       )}
-
-
-
 
       <div className="w-full flex flex-wrap items-center justify-between px-4 lg:px-2 py-0.5 gap-2 border-slate-100 dark:border-slate-700">
         {/* Kiri: Rows per page & Page info */}
@@ -451,7 +538,7 @@ export default function DataPeserta() {
 
       {/* desktop view */}
       <div className="hidden xl:block w-full bg-white dark:bg-slate-800 overflow-x-auto">
-        <table className="w-full">
+        <table className="table-auto w-full">
           <thead className="border-y-2 dark:border-y-gray-600 bg-gray-100 dark:bg-gray-700">
             <tr>
               <th className="pl-6 pr-3 py-3 text-xs tracking-wide text-center border-x-2 border-l-0 border-gray-200 dark:border-gray-600 whitespace-nowrap"
@@ -541,7 +628,7 @@ export default function DataPeserta() {
                     {index + 1}
                   </td>
                   <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                    07012025
+                    {item?.id}
                   </td>
                   <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
                     {item?.name}
@@ -555,26 +642,56 @@ export default function DataPeserta() {
                   <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
                     {item?.district}, {item?.city}, {item?.province}
                   </td>
-                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                    {item?.email}
+                  <td className="p-3 text-sm text-left border-x-2 whitespace-nowrap align-top">
+                    {item?.music_works
+                      ?.filter(work => work.title)
+                      .map((work, index) => (
+                        <div key={work.id}>
+                          {index + 1}. {work.title}
+                        </div>
+                      ))}
                   </td>
-                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                    aseek
+
+                  <td className="p-3 text-sm text-left border-x-2 whitespace-nowrap align-top">
+                    <ol className="list-decimal list-inside space-y-1">
+                      {item?.music_works
+                        ?.filter(work => work.genre)
+                        .map((work, index) => (
+                          <li key={work.id}>{work.genre}</li>
+                        ))}
+                    </ol>
                   </td>
-                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                    dangdut
+
+                  <td className="p-3 text-sm text-left border-x-2 whitespace-nowrap align-top">
+                    <div className="flex flex-col gap-1 w-fit">
+                      {item?.music_works?.map((work, index) => (
+                        <span
+                          key={index}
+                          className={
+                            work.status === "submitted"
+                              ? "bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300 whitespace-nowrap w-fit"
+                              : work.status === "approved"
+                                ? "bg-emerald-100 text-emerald-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-emerald-900 dark:text-emerald-300 whitespace-nowrap w-fit"
+                                : ""
+                          }
+                        >
+                          {work.status === "submitted" && "Submitted"}
+                          {work.status === "approved" && "Approved"}
+                        </span>
+                      ))}
+                    </div>
                   </td>
-                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                    <span className="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300 whitespace-nowrap">
-                      Created
-                    </span>
-                  </td>
+
                   <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
                     <div className="w-full flex items-center justify-center gap-2 px-2">
                       <Tooltip title="Detail Peserta">
                         <button
                           type="button"
-                          onClick={() => handleOpenDetailPeserta(detailPeserta)}
+                          onClick={() => {
+                            navigate(`/admin/daftar-peserta/detail-peserta/${encodeURIComponent(
+                              encryptData(item.id, secretKey)
+                            )}`)
+                          }}
                           className="w-8 h-8 flex items-center justify-center bg-amber-100 text-amber-800 text-sm font-medium  rounded-lg dark:bg-amber-900 dark:text-amber-300 hover:bg-amber-600 hover:text-white dark:hover:bg-amber-700 dark:hover:text-white"
                         >
                           <Eye className="w-4 h-4" />
@@ -608,9 +725,18 @@ export default function DataPeserta() {
                 </p>
               </div>
 
-              <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
-                Created
-              </span>
+              {item?.music_works?.[0]?.status === "submitted" && (
+                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
+                  Submitted
+                </span>
+              )}
+
+              {item?.music_works?.[0]?.status === "approved" && (
+                <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full dark:bg-emerald-900 dark:text-emerald-300">
+                  Approved
+                </span>
+              )}
+
             </div>
 
             {/* DATA UTAMA */}
@@ -620,17 +746,21 @@ export default function DataPeserta() {
                 <span>{item?.whatsapp}</span>
               </div>
 
-              <div className="flex justify-between">
-                <span className="text-gray-500">Email</span>
-                <span className="truncate max-w-[160px]">
+              <div className="flex justify-between items-start gap-2">
+                <span className="text-gray-500 shrink-0">Email</span>
+                <span className="text-right break-words max-w-[15ch] sm:max-w-none">
                   {item?.email}
                 </span>
               </div>
 
-              <div className="flex justify-between">
-                <span className="text-gray-500">Alamat</span>
-                <span>{item?.district}, {item?.city}, {item?.province}</span>
+
+              <div className="flex justify-between items-start gap-2">
+                <span className="text-gray-500 shrink-0">Alamat</span>
+                <span className="text-right break-words max-w-[20ch] sm:max-w-none">
+                  {item?.district}, {item?.city}, {item?.province}
+                </span>
               </div>
+
             </div>
 
             {/* DETAIL KARYA */}
@@ -641,19 +771,24 @@ export default function DataPeserta() {
 
               <div className="flex justify-between">
                 <span className="text-gray-500">Judul</span>
-                <span>Aseek</span>
+                <span>{item?.music_works?.[0]?.title}</span>
               </div>
 
               <div className="flex justify-between">
                 <span className="text-gray-500">Genre</span>
-                <span>Dangdut</span>
+                <span>{item?.music_works?.[0]?.genre}</span>
               </div>
             </div>
 
             {/* ACTION */}
             <div className="mt-4 flex justify-end">
               <button
-                onClick={() => handleOpenDetailPeserta(detailPeserta)}
+                type="button"
+                onClick={() => {
+                  navigate(`/admin/daftar-peserta/detail-peserta/${encodeURIComponent(
+                    encryptData(item.id, secretKey)
+                  )}`)
+                }}
                 className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-600 hover:text-white transition"
               >
                 <Eye className="w-4 h-4" />
@@ -668,44 +803,3 @@ export default function DataPeserta() {
     </>
   )
 }
-
-
-{/* <div className="w-full bg-white dark:bg-slate-800 overflow-x-auto">
-        <Table className="w-full">
-          <TableHeader className="border-y-2 dark:border-y-gray-600 bg-gray-100 dark:bg-gray-700">
-            <TableRow>
-              <TableHead className="pl-6 pr-3 py-3 text-xs tracking-wide text-center border-x-2 border-l-0 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                #
-              </TableHead>
-              <TableHead className="p-3 text-xs tracking-wide text-center border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                Id Regristasi 
-              </TableHead>
-              <TableHead className="p-3 text-xs tracking-wide text-center border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                Nama Peserta
-              </TableHead>
-              <TableHead className="p-3 text-xs tracking-wide text-center border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                Jumlah Lagu
-              </TableHead>
-              <TableHead className="p-3 text-xs tracking-wide text-center border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                Genre
-              </TableHead>
-              <TableHead className="p-3 text-xs tracking-wide text-center border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                Whatsapp
-              </TableHead>
-              <TableHead className="p-3 text-xs tracking-wide text-center border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                Email 
-              </TableHead>
-              <TableHead className="p-3 text-xs tracking-wide text-center border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                Alamat
-              </TableHead>
-              <TableHead className="p-3 text-xs tracking-wide text-center border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                Status
-              </TableHead>
-              <TableHead className="p-3 text-xs tracking-wide text-center border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                Action
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-        </Table>
-
-      </div> */}
