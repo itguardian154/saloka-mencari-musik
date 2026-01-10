@@ -1,27 +1,44 @@
 "use client"
 
-import React from "react"
+import { useRef } from "react"
 import { Check, Music, Video } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import UploadAudio from "@/pages/role-peserta/fom-pendaftaran/upload-audio"
 import ScreenRecord from "@/pages/role-peserta/fom-pendaftaran/screen-record"
 import Konfirmasi from "@/pages/role-peserta/fom-pendaftaran/konfirmasi"
+import { toast } from "sonner"
+
 
 const stepIcons = [Music, Video, Check]
 
+export function Stepper({ steps, currentStep, onStepChange, idMusik }) {
+  const handleSuccess = () => {
+    onStepChange(1);
+  };
 
-export function Stepper({ steps, currentStep, onStepChange }) {
+  const handlePrevious = () => {
+    onStepChange(0);
+  };
+
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
-        return <UploadAudio />
+        return <UploadAudio idMusik={idMusik} onSuccess={handleSuccess} />;
       case 1:
-        return <Konfirmasi />
+        return (
+          <Konfirmasi
+            idMusik={idMusik}
+            onPrevious={handlePrevious}
+            onSuccess={handleSuccess}
+          />
+        );
       default:
-        return <UploadAudio />
+        return null;
     }
-  }
+  };
+
   return (
     <div className="w-full">
       {/* Stepper */}
@@ -48,8 +65,8 @@ export function Stepper({ steps, currentStep, onStepChange }) {
 
               {/* Text */}
               <div className="flex flex-col ml-2">
-                <span className="text-sm font-medium">{step.title}</span>
-                <span className="text-xs text-muted-foreground">{step.description}</span>
+                <span className="text-sm font-medium  text-emerald-50">{step.title}</span>
+                <span className="text-xs text-emerald-400">{step.description}</span>
               </div>
 
               {/* Line only for desktop */}
@@ -69,9 +86,7 @@ export function Stepper({ steps, currentStep, onStepChange }) {
       {/* Konten */}
       {renderStepContent()}
 
-
-      {/* Navigation Buttons */}
-      <div className="flex justify-between mt-8">
+      {/* <div className="flex">
         <Button
           variant="outline"
           onClick={() => onStepChange(currentStep - 1)}
@@ -79,22 +94,7 @@ export function Stepper({ steps, currentStep, onStepChange }) {
         >
           Previous
         </Button>
-
-        <Button
-          onClick={() => {
-            if (currentStep === steps.length - 1) {
-              // aksi submit
-              console.log("SUBMIT DATA")
-              // submitForm()
-            } else {
-              onStepChange(currentStep + 1)
-            }
-          }}
-        >
-          {currentStep === steps.length - 1 ? "Submit" : "Next"}
-        </Button>
-
-      </div>
+      </div> */}
     </div>
   )
 }

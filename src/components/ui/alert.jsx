@@ -14,7 +14,7 @@ const alertVariants = cva(
           "border-2 border-amber-600/50 text-amber-600 dark:border-border-amber-600 [&>svg]:text-border-amber-600",
         success:
           "border-2 border-emerald-600/50 text-emerald-600 dark:border-border-emerald-600 [&>svg]:text-border-emerald-600",
-        info: "border-2 border-blue-600/50 text-blue-600 dark:border-border-blue-600 [&>svg]:text-border-blue-600",
+        info: "border-2 border-emerald-600/50 text-emerald-400 dark:border-border-emerald-600 [&>svg]:text-border-emerald-600",
       },
     },
     defaultVariants: {

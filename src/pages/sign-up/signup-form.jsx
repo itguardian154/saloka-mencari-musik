@@ -140,7 +140,7 @@ const SignUpForm = () => {
         whatsapp: valueForm.whatsapp,
         province: valueForm.province,
         city: valueForm.city,
-        district: "tes",
+        district: "-",
       }),
       {
         loading: "Loading...",

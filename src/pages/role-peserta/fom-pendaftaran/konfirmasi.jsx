@@ -1,94 +1,239 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { CirclePause, Music, Play } from "lucide-react"
 import { ItemActions } from "@/components/ui/item"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import axios from "axios";
+import API_URLS from "../../../../config";
+import { toast } from "sonner"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { AlertTriangle } from "lucide-react";
+import { useNavigate } from "react-router-dom"
+import CryptoJS from "crypto-js";
 
-export default function Konfirmasi() {
-  const audioRef = useRef(null)
-  const videoRef = useRef(null)
-  const [isPlaying, setIsPlaying] = useState(false)
 
-  const videoUrl =
-    "https://www.w3schools.com/html/mov_bbb.mp4"
+export default function Konfirmasi({ idMusik, onPrevious, onSuccess }) {
+  const [detailUser, setDetailUser] = useState({
+    token: localStorage.getItem("token"),
+  });
 
-  const audioUrl =
-    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+  useEffect(() => {
+    setDetailUser({
+      token: localStorage.getItem("token"),
+    });
+  }, [])
 
-  const togglePlay = () => {
-    if (!audioRef.current) return
-
-    if (isPlaying) {
-      audioRef.current.pause()
-    } else {
-      audioRef.current.play()
-    }
-
-    setIsPlaying(!isPlaying)
+  const handleFinalSubmit = () => {
+    console.log("submit final")
   }
+
+  const clearData = () => {
+    setDetailMusik({});
+  };
+
+  const [audioURL, setAudioURL] = useState(null);
+  const [fileName, setFileName] = useState("");
+  const audioRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [openConfirm, setOpenConfirm] = useState(false);
+  const [valueForm, setValueForm] = useState({
+    status: "approved",
+  });
+  const secretKey = API_URLS.secretKey;
+  const navigate = useNavigate();
+
+  const encryptData = (data, secretKey) => {
+    return CryptoJS.AES.encrypt(
+      JSON.stringify(data),
+      secretKey
+    ).toString();
+  };
+
+
+  // Get Data Musik by ID Composer Start
+  const [detailMusik, setDetailMusik] = useState({});
+
+  useEffect(() => {
+    const getDetailDataMusik = async () => {
+      try {
+        const response = await axios.get(
+          `${API_URLS.mencariMusik}/music-works/${idMusik}`,
+          {
+            headers: {
+              Authorization: `Bearer ${detailUser.token}`,
+            },
+          }
+        );
+
+        if (response.status === 200 && response.data.status === true) {
+          const data = response.data.data;
+          setDetailMusik(data);
+
+          if (data.audio_link) {
+            setAudioURL(data.audio_link);
+            setFileName(data.filename);
+          }
+        }
+        else {
+          clearData();
+        }
+      } catch (error) {
+        clearData();
+        console.log(error);
+        console.log(
+          error?.response?.data?.message ||
+          "Error catching data"
+        );
+      }
+    };
+
+    if (idMusik && detailUser.token) {
+      getDetailDataMusik();
+    }
+  }, [idMusik, detailUser.token]);
+  // Get Data Musik by ID End
+
+  /* ===================== SUBMIT ===================== */
+  const handleSubmit = async () => {
+    if (isLoading) return;
+
+    try {
+      setIsLoading(true);
+
+      const createRes = await axios.put(
+        `${API_URLS.mencariMusik}/music-works/${idMusik}`,
+        valueForm,
+        {
+          headers: {
+            Authorization: `Bearer ${detailUser.token}`,
+          },
+        }
+      );
+
+      const data = createRes.data?.data;
+
+      if (!data?.id) {
+        throw new Error("ID music work tidak ditemukan");
+      }
+
+      toast.success("Selamat, karya musik berhasil diupload!");
+      onSuccess?.();
+      navigate(
+        `/participant/${encodeURIComponent(
+          encryptData(createRes.data.data.composer_id, secretKey)
+        )}`
+      );
+
+
+    } catch (err) {
+      toast.error(
+        err?.response?.data?.message || err.message || "Upload gagal"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
       <div className="flex flex-col gap-6">
         <div className="flex flex-col">
-          <h1 className="text-2xl font-bold">Konfirmasi</h1>
-          <p className="text-balance text-sm text-muted-foreground">
+          <h1 className="text-2xl font-bold text-emerald-50">Konfirmasi</h1>
+          <p className="text-balance text-sm text-emerald-400">
             Pastikan semua data sudah benar sebelum Anda menekan tombol submit.
           </p>
         </div>
       </div>
-      <div className="flex w-full flex-col gap-6 pt-4">
 
-        {/* AUDIO CARD */}
-        <div className="group flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-100 p-3 transition hover:bg-slate-100/70">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-sm">
-              <Music className="h-5 w-5 text-white" />
+
+      {/* AUDIO PLAYER (HIDDEN) */}
+      {audioURL && (
+        <div className="mt-4 w-full">
+          <p className="text-xs text-gray-300 mb-1 truncate">
+            🎵 {fileName}
+          </p>
+
+          <audio ref={audioRef} controls className="w-full">
+            <source src={audioURL} type="audio/mpeg" />
+          </audio>
+        </div>
+      )}
+
+
+      <div className="flex justify-start pt-10">
+        <span className="text-sky-50"> Link google drive :</span>
+        <span className="text-sky-400 cursor-pointer">{" "}{detailMusik.work_link}</span>
+      </div>
+
+      <div>
+        {/* konten konfirmasi */}
+        <div className="flex justify-between mt-6">
+          <Button variant="outline" onClick={onPrevious}>
+            Previous
+          </Button>
+
+          <Button
+            onClick={() => setOpenConfirm(true)}
+            disabled={isLoading}
+            className="rounded-xl px-6"
+          >
+            Submit
+          </Button>
+        </div>
+      </div>
+
+      <Dialog open={openConfirm} onOpenChange={setOpenConfirm}>
+        <DialogContent className="rounded-2xl sm:max-w-md">
+          <DialogHeader className="flex flex-col items-center text-center gap-3">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
+              <AlertTriangle className="h-7 w-7 text-red-600" />
             </div>
 
-            <p className="text-sm font-semibold text-slate-800 leading-tight">
-              SAL001 - Antika Lorien - Saloka Ceria Tiada Habisnya.mp3
+            <DialogTitle className="text-xl font-semibold">
+              Konfirmasi Submit Karya Musik
+            </DialogTitle>
+
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Apakah kamu yakin ingin <b>mengirim karya musik ini</b>?
+              <br />
+              <span className="text-red-600 font-medium">
+                Setelah disubmit, data tidak dapat diubah kembali.
+              </span>
             </p>
-          </div>
+          </DialogHeader>
 
-          <ItemActions>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  onClick={togglePlay}
-                  className="w-8 h-8 p-0"
-                >
-                  {isPlaying ? <CirclePause /> : <Play />}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{isPlaying ? "Pause Audio" : "Play Audio"}</p>
-              </TooltipContent>
-            </Tooltip>
-          </ItemActions>
-        </div>
+          <DialogFooter className="mt-6 flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1 rounded-xl"
+              onClick={() => setOpenConfirm(false)}
+              disabled={isLoading}
+            >
+              Batal
+            </Button>
 
-        {/* AUDIO PLAYER (HIDDEN) */}
-        <audio
-          ref={audioRef}
-          src={audioUrl}
-          preload="metadata"
-          onEnded={() => setIsPlaying(false)}
-        />
-      </div>
+            <Button
+              className="flex-1 rounded-xl bg-red-600 hover:bg-red-700"
+              onClick={() => {
+                setOpenConfirm(false);
+                handleSubmit();
+              }}
+              disabled={isLoading}
+            >
+              {isLoading ? "Mengirim..." : "Ya, Submit Final"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {/* VIDEO PREVIEW */}
-      <div className="flex justify-center pt-10">
-        <div className="w-full max-w-3xl overflow-hidden rounded-xl border bg-black shadow-sm">
-          <video
-            src={videoUrl}
-            controls
-            className="w-full h-auto object-contain"
-          />
-        </div>
-      </div>
     </>
   )
 }
