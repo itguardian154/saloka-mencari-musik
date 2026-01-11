@@ -1,11 +1,80 @@
 import { Users, Music } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
+import { useEffect, useState } from "react";
+import { data } from "react-router-dom";
+import { useParams} from "react-router-dom";
+import API_URLS from "../../../../config";
+import CryptoJS from "crypto-js";
+import axios from "axios";
 
-export default function Dashboard() {
-  // sementara hardcode (nanti bisa dari API)
-  const totalPesertaregristrasi = 128
-  const totalPesertaUploadkarya = 100
-  const totalKarya = 342
+
+export default function DashboardSalokaMencariMusik() {
+  const { id } = useParams();
+  const secretKey = API_URLS.secretKey;
+  const [loading, setLoading] = useState(false);
+  const [dataMusik, setDataMusik] = useState(null);
+
+  const decryptData = (data, secretKey) => {
+      const bytes = CryptoJS.AES.decrypt(data, secretKey);
+      const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
+      return decryptedData;
+    };
+  
+    const decryptID = decryptData(decodeURIComponent(id), secretKey);
+    console.log(decryptID);
+  
+    const [detailUser, setDetailUser] = useState({
+      token: localStorage.getItem("token"),
+    });
+  
+  
+    useEffect(() => {
+      setDetailUser({
+        token: localStorage.getItem("token"),
+      });
+    }, []);
+  
+  // Encrypt Route End
+
+    useEffect(() => {
+    setDetailUser({
+      token: localStorage.getItem("token"),
+    });
+  }, []);
+
+
+useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  const getDataMusik = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `${API_URLS.mencariMusik}/dashboard`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 200 && response.data?.status === true) {
+        setDataMusik(response.data.data);
+      } else {
+        setDataMusik(null);
+      }
+    } catch (error) {
+      setDataMusik(null);
+      console.log("ERROR API:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  getDataMusik();
+}, []);
+
 
   return (
     <div className="space-y-4">
@@ -26,7 +95,7 @@ export default function Dashboard() {
                 Jumlah Peserta Regristrasi
               </p>
               <p className="text-2xl font-bold">
-                {totalPesertaregristrasi}
+                {dataMusik?.total_composer ?? 0}
               </p>
             </div>
           </CardContent>
@@ -43,7 +112,7 @@ export default function Dashboard() {
                 Jumlah Peserta Upload Karya
               </p>
               <p className="text-2xl font-bold">
-                {totalPesertaUploadkarya}
+                {dataMusik?.total_composer_upload ?? 0}
               </p>
             </div>
           </CardContent>
@@ -61,7 +130,7 @@ export default function Dashboard() {
                 Jumlah Karya
               </p>
               <p className="text-2xl font-bold">
-                {totalKarya}
+                {dataMusik?.total_music_work?? 0}
               </p>
             </div>
           </CardContent>
