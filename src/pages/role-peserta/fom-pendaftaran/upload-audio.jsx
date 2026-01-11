@@ -37,7 +37,7 @@ const UploadAudio = ({ idMusik, onSuccess }) => {
     genre: "",
     description: "",
     lyrics: "",
-    status: "submited",
+    status: "submitted",
     work_link: "",
   });
 
@@ -209,7 +209,7 @@ const UploadAudio = ({ idMusik, onSuccess }) => {
         if (!data) return;
 
         // ✅ JIKA SUDAH PERNAH SUBMIT → PREFILL FORM
-        if (data.status === "submited") {
+        if (data.status === "submitted") {
           setValueForm({
             title: data.title || "",
             genre_id: data.genre_id || "",

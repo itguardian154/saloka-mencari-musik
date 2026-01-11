@@ -31,6 +31,7 @@ export function DaftarAudio({ id }) {
 
   const secretKey = API_URLS.secretKey;
 
+
   const encryptData = (data, secretKey) => {
     return CryptoJS.AES.encrypt(
       JSON.stringify(data),
@@ -80,11 +81,11 @@ export function DaftarAudio({ id }) {
       getDetailDataMusik();
     }
   }, [id, detailUser.token]);
-  // Get Data Musik by ID End
-
 
   const hasPaidAccess = detailMusik.find(
-    (item) => item.payment_status === "pending"
+    (item) =>
+      item.payment_status === "paid" &&
+      item.status !== "approved"
   );
   //console.log("ini id musik", hasPaidAccess.id)  
   const approvedMusics = detailMusik.filter(
@@ -92,7 +93,8 @@ export function DaftarAudio({ id }) {
   );
 
   const isEmptyMusic =
-    detailMusik.length === 0 || !hasPaidAccess;
+    detailMusik.length === 0;
+  // Get Data Musik by ID End
 
   return (
     <div
@@ -240,7 +242,7 @@ export function DaftarAudio({ id }) {
 
         {/* ================= ITEM MUSIK ================= */}
         {approvedMusics.map((music, index) => (
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-3" key={index}>
             <div
               className="
               relative flex items-start gap-4 rounded-xl
@@ -260,26 +262,24 @@ export function DaftarAudio({ id }) {
 
               <div className="flex-1 space-y-1">
                 <p className="text-sm font-semibold text-emerald-50">
-                  Saloka Ceria Tiada Habisnya
+                  {music.title}
                 </p>
                 <p className="text-xs font-medium text-emerald-400">Jazz</p>
                 <p className="text-xs text-emerald-200/60 line-clamp-2">
-                  Lagu santai dengan nuansa jazz yang cocok untuk menemani sore
-                  hari.
+                  {music.description}
                 </p>
                 <p className="text-xs italic text-emerald-100/80">
-                  SAL001 - Antika Lorien - Saloka Ceria Tiada Habisnya.mp3
+                  {music.filename}
                 </p>
+                {/* AUDIO PLAYER (HIDDEN) */}
+                {music.audio_link && (
+                  <div className="origin-left scale-y-75">
+                    <audio controls className="w-full">
+                      <source src={music.audio_link} type="audio/mpeg" />
+                    </audio>
+                  </div>
+                )}
               </div>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button className="h-8 w-8 rounded-full">
-                    <Play className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Play Musik</TooltipContent>
-              </Tooltip>
             </div>
           </CardContent>
         ))}
