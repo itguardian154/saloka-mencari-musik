@@ -29,7 +29,7 @@ createRoot(document.getElementById('root')).render(
           <Route path="/admin/daftar-peserta" element={<DataPeserta />} />
         </Route>
         <Route element={<Layout />}>
-          <Route path="/admin/daftar-peserta/detail-peserta" element={<DetailPeserta />} />
+          <Route path="/admin/daftar-peserta/detail-peserta/:id" element={<DetailPeserta />} />
         </Route>
         <Route element={<Layout />}>
           <Route path="/admin/dashboard" element={<DashboardPeserta />} />
