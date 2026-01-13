@@ -379,7 +379,7 @@ export default function ProfilePeserta({ id }) {
         {/* Age */}
         <div className="flex items-center gap-3 text-sm">
           <Cake className="size-4 text-emerald-400" />
-          <span>{"< 18 Tahun"}</span>
+          <span>{detailPeserta.age}</span>
         </div>
 
         {/* Location */}

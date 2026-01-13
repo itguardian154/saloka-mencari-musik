@@ -6,6 +6,7 @@ import API_URLS from "../../../../config";
 import CryptoJS from "crypto-js";
 import { useEffect, useState } from "react"
 import axios from "axios";
+import Swal from "sweetalert2";
 
 
 export function DaftarAudio({ id }) {
@@ -76,7 +77,7 @@ export function DaftarAudio({ id }) {
 
   const hasPaidAccess = detailMusik.find(
     (item) =>
-      item.payment_status === "pending" &&
+      item.payment_status === "paid" &&
       item.status !== "approved"
   );
   //console.log("ini id musik", hasPaidAccess.id)  
@@ -87,6 +88,56 @@ export function DaftarAudio({ id }) {
   const isEmptyMusic =
     detailMusik.length === 0;
   // Get Data Musik by ID End
+
+
+  const handleUploadKarya = async () => {
+    // 🚨 CEK SLOT AKTIF
+    if (hasPaidAccess) {
+      Swal.fire({
+        icon: "warning",
+        title: "Slot Upload Masih Aktif",
+        text: "Anda masih memiliki slot upload musik yang aktif. Silahkan selesaikan proses upload karya musik pada slot tersebut sebelum membuat pengajuan baru",
+        showConfirmButton: false,
+        timer: 3000,
+      });
+      return;
+    }
+
+    try {
+      const response = await axios({
+        method: "POST",
+        url: `${API_URLS.mencariMusik}/music-works`,
+        data: {
+          composer_id: id,
+        },
+        headers: {
+          Authorization: `Bearer ${detailUser.token}`,
+        },
+      });
+
+      if (response.status === 200 && response.data.status === true) {
+        const invoiceUrl = response.data.data.invoice.invoice_url;
+
+        // redirect ke Xendit
+        window.location.href = invoiceUrl;
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Gagal Mengirim Karya",
+          text: "Silakan coba kembali beberapa saat lagi.",
+        });
+      }
+    } catch (error) {
+      Swal.close();
+      console.log(error);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal Mengirim Karya",
+        text: error?.response?.data?.message || "Error catching create",
+      });
+    }
+  };
+
 
   return (
     <div
@@ -123,8 +174,11 @@ export function DaftarAudio({ id }) {
         </div>
 
         {/* Button */}
-        <Button type="button" className=" h-11 rounded-full bg-emerald-500 px-8 text-sm font-semibold uppercase tracking-wide text-black shadow-md transition hover:bg-emerald-400 hover:shadow-[0_0_25px_rgba(34,197,94,0.45)] active:scale-95 "
-          onClick={() => { window.location.href = "https://checkout.xendit.co/web/695253bbb95adc00e7a229a8" }} >
+        <Button
+          type="button"
+          onClick={handleUploadKarya}
+          className="h-11 rounded-full bg-emerald-500 px-8 text-sm font-semibold uppercase tracking-wide text-black shadow-md transition hover:bg-emerald-400 hover:shadow-[0_0_25px_rgba(34,197,94,0.45)] active:scale-95"
+        >
           <Upload className="mr-2 h-4 w-4" />
           Upload Karya Musik
         </Button>
@@ -211,7 +265,7 @@ export function DaftarAudio({ id }) {
               {/* Text */}
               <div className="flex-1 space-y-1">
                 <p className="text-sm font-semibold text-emerald-50">
-                  Akses Upload Aktif
+                  Slot Upload Aktif
                 </p>
                 <p className="text-xs font-medium text-emerald-400">
                   Kamu sudah bisa mengunggah musik

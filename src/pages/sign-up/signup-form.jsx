@@ -140,6 +140,7 @@ const SignUpForm = () => {
         whatsapp: valueForm.whatsapp,
         province: valueForm.province,
         city: valueForm.city,
+        age: valueForm.age,
         district: "-",
       }),
       {
@@ -375,7 +376,7 @@ const SignUpForm = () => {
             <AlertDescription>
               <ul className="list-inside list-disc text-sm">
                 <li>
-                  Link video dapat diupload setelah registrasi
+                  File musik dapat diupload setelah registrasi
                 </li>
                 <li>
                   Peserta dapat mengirimkan karya lebih dari 1 dengan tetap membayar biaya pendaftaran kembali.
@@ -401,7 +402,7 @@ const SignUpForm = () => {
             >
               Syarat dan Ketentuan
             </button>{" "}
-            Saloka Lomba Mewarnai
+            Saloka Mencari Musik
           </label>
         </div>
         <Button
