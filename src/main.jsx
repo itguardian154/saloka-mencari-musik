@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-import App from './App.jsx';
+import './index.css'
 import AuthPage from './pages/Auth/auth.jsx';
 import SignUpPage from './pages/sign-up/sign-up.jsx';
 import Layout from './layout/layout-main.jsx';
@@ -28,6 +28,8 @@ createRoot(document.getElementById('root')).render(
         <Route element={<Layout />}>
           <Route path="/admin/daftar-peserta" element={<DataPeserta />} />
         </Route>
+        <Route path="/validate-otp/:phone" element={<ValidateOtpForm />} />
+
         <Route element={<Layout />}>
           <Route path="/admin/daftar-peserta/detail-peserta/:id" element={<DetailPeserta />} />
         </Route>

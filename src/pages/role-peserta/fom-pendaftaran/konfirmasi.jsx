@@ -1,10 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { CirclePause, Music, Play } from "lucide-react"
-import { ItemActions } from "@/components/ui/item"
 import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import axios from "axios";
 import API_URLS from "../../../../config";
 import { toast } from "sonner"
@@ -15,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Link } from "lucide-react";
 import { useNavigate } from "react-router-dom"
 import CryptoJS from "crypto-js";
 
@@ -156,21 +153,48 @@ export default function Konfirmasi({ idMusik, onPrevious, onSuccess }) {
 
       {/* AUDIO PLAYER (HIDDEN) */}
       {audioURL && (
-        <div className="mt-4 w-full">
-          <p className="text-xs text-gray-300 mb-1 truncate">
+        <div className="mt-6 w-full">
+          {/* LABEL */}
+          <p className="text-xs uppercase tracking-wide text-gray-400 mb-2">
+            Preview Audio
+          </p>
+
+          {/* NAMA FILE */}
+          <p className="text-sm text-emerald-200 mb-2 truncate flex items-center gap-1">
             🎵 {fileName}
           </p>
 
+          {/* AUDIO PLAYER */}
           <audio ref={audioRef} controls className="w-full">
             <source src={audioURL} type="audio/mpeg" />
           </audio>
+
+          {/* INFO KECIL */}
+          <p className="mt-1 text-[11px] text-gray-400">
+            Putar untuk memastikan file musik sudah benar
+          </p>
         </div>
       )}
 
+      {/* GOOGLE DRIVE */}
+      <div className="mt-8">
+        <p className="text-xs uppercase tracking-wide text-gray-400 mb-2">
+          Google Drive
+        </p>
 
-      <div className="flex justify-start pt-10">
-        <span className="text-sky-50"> Link google drive :</span>
-        <span className="text-sky-400 cursor-pointer">{" "}{detailMusik.work_link}</span>
+        <a
+          href={detailMusik.work_link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-lg bg-sky-500/20 px-4 py-2 text-sky-300 hover:bg-sky-500/30 transition"
+        >
+          <Link className="h-4 w-4" />
+          Buka Google Drive
+        </a>
+
+        <p className="mt-1 text-[11px] text-gray-400">
+          Klik dan pastikan google drive sudah benar
+        </p>
       </div>
 
       <div>

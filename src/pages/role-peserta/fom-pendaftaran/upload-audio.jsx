@@ -393,8 +393,12 @@ const UploadAudio = ({ idMusik, onSuccess }) => {
                   <p className="text-xs text-gray-300 mb-1 truncate">
                     🎵 {fileName}
                   </p>
-                  <audio controls className="w-full">
-                    <source src={audioURL} />
+                  <audio
+                    key={audioURL}
+                    controls
+                    className="w-full"
+                  >
+                    <source src={audioURL} type="audio/mpeg" />
                   </audio>
                 </div>
               )}
@@ -424,8 +428,12 @@ const UploadAudio = ({ idMusik, onSuccess }) => {
                   <li>
                     Harap cek lagi file musik dan url google drive Anda. Pastikan sudah sesuai dengan ketentuan
                   </li>
-                  <li>
-                    Contoh link google drive: https://drive.google.com/drive/folders/1ZoY_H_G3J58HhoCr6c3zVkiDTTbOVu5
+                  <li className="break-all">
+                    Contoh link google drive:
+                    {" "}
+                    <span className="text-emerald-300">
+                      https://drive.google.com/drive/folders/1ZoY_H_G3J58HhoCr6c3zVkiDTTbOVu5
+                    </span>
                   </li>
                   <li>
                     Pastikan izin akses google drive Anda sudah terbuka

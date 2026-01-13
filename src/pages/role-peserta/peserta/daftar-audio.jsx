@@ -1,13 +1,5 @@
-import { Music, Play, Upload } from "lucide-react"
+import { Music, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
-  ItemActions,
-} from "@/components/ui/item"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useNavigate, } from "react-router-dom"
 import API_URLS from "../../../../config";
@@ -84,7 +76,7 @@ export function DaftarAudio({ id }) {
 
   const hasPaidAccess = detailMusik.find(
     (item) =>
-      item.payment_status === "paid" &&
+      item.payment_status === "pending" &&
       item.status !== "approved"
   );
   //console.log("ini id musik", hasPaidAccess.id)  
@@ -162,12 +154,13 @@ export function DaftarAudio({ id }) {
           <CardContent className="space-y-3">
             <div
               className="
-              relative flex items-start gap-4 rounded-xl
+              relative flex flex-col gap-4  rounded-xl
               bg-slate-800/60
               border border-emerald-400/10
               p-4
               transition
               hover:bg-slate-800/80
+               md:flex-row md:items-start
             "
             >
               <span className="absolute left-0 top-0 h-full w-1 rounded-l-xl bg-emerald-400/40" />
@@ -198,21 +191,24 @@ export function DaftarAudio({ id }) {
           <CardContent className="space-y-3">
             <div
               className="
-              relative flex items-start gap-4 rounded-xl
-              bg-gradient-to-r
-              from-emerald-900/60 via-slate-900/70 to-slate-900/60
-              border border-emerald-400/25
-              p-3
-              transition
-              hover:shadow-[0_0_35px_rgba(16,185,129,0.35)]
-            "
+      relative flex flex-col gap-4 rounded-xl
+      bg-gradient-to-r
+      from-emerald-900/60 via-slate-900/70 to-slate-900/60
+      border border-emerald-400/25
+      p-3
+      transition
+      hover:shadow-[0_0_35px_rgba(16,185,129,0.35)]
+      md:flex-row md:items-start
+    "
             >
               <span className="absolute left-0 top-0 h-full w-1 bg-emerald-400 shadow-[0_0_18px_rgba(16,185,129,0.8)]" />
 
+              {/* Icon */}
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600">
                 <Music className="h-5 w-5 text-white" />
               </div>
 
+              {/* Text */}
               <div className="flex-1 space-y-1">
                 <p className="text-sm font-semibold text-emerald-50">
                   Akses Upload Aktif
@@ -225,19 +221,24 @@ export function DaftarAudio({ id }) {
                 </p>
               </div>
 
-              <Button
-                onClick={() =>
-                  navigate(
-                    `/participant/form/${encodeURIComponent(
-                      encryptData(hasPaidAccess.id, secretKey)
-                    )}`
-                  )
-                }
-              >
-                Upload Musik
-              </Button>
+              {/* Button */}
+              <div className="w-full md:w-auto">
+                <Button
+                  className="w-full md:w-auto"
+                  onClick={() =>
+                    navigate(
+                      `/participant/form/${encodeURIComponent(
+                        encryptData(hasPaidAccess.id, secretKey)
+                      )}`
+                    )
+                  }
+                >
+                  Upload Musik
+                </Button>
+              </div>
             </div>
           </CardContent>
+
         )}
 
         {/* ================= ITEM MUSIK ================= */}
@@ -245,14 +246,15 @@ export function DaftarAudio({ id }) {
           <CardContent className="space-y-3" key={index}>
             <div
               className="
-              relative flex items-start gap-4 rounded-xl
-              bg-gradient-to-r
-              from-emerald-900/60 via-slate-900/70 to-slate-900/60
-              border border-emerald-400/25
-              p-3
-              transition
-              hover:shadow-[0_0_35px_rgba(16,185,129,0.35)]
-            "
+      relative flex flex-col gap-4 rounded-xl
+      bg-gradient-to-r
+      from-emerald-900/60 via-slate-900/70 to-slate-900/60
+      border border-emerald-400/25
+      p-3
+      transition
+      hover:shadow-[0_0_35px_rgba(16,185,129,0.35)]
+      md:flex-row md:items-start
+    "
             >
               <span className="absolute left-0 top-0 h-full w-1 bg-emerald-400 shadow-[0_0_18px_rgba(16,185,129,0.6)]" />
 
@@ -265,10 +267,10 @@ export function DaftarAudio({ id }) {
                   {music.title}
                 </p>
                 <p className="text-xs font-medium text-emerald-400">Jazz</p>
-                <p className="text-xs text-emerald-200/60 line-clamp-2">
+                <p className="text-xs text-emerald-200/60">
                   {music.description}
                 </p>
-                <p className="text-xs italic text-emerald-100/80">
+                <p className="text-xs italic text-emerald-100/80 pt-1">
                   {music.filename}
                 </p>
                 {/* AUDIO PLAYER (HIDDEN) */}

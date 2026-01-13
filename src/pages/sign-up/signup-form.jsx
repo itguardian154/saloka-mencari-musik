@@ -369,7 +369,7 @@ const SignUpForm = () => {
         </div>
 
         <div className="flex flex-col gap-2 md:col-span-2">
-          <Alert variant="info">
+          <Alert variant="warning">
             <InfoIcon className="-mx-2" />
             <AlertTitle>Informasi Penting</AlertTitle>
             <AlertDescription>

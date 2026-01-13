@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InfoIcon } from "lucide-react";
-import './index.css'
+
 
 function App() {
   return (

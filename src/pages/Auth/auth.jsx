@@ -107,7 +107,7 @@ const AuthPage = () => {
                       }}
                       className="w-full h-11 placeholder:text-sm"
                     />
-                    <Alert variant="info">
+                    <Alert variant="warning">
                       <InfoIcon className="-mx-2" />
                       <AlertTitle>Informasi</AlertTitle>
                       <AlertDescription>
