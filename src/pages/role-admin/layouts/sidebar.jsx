@@ -26,7 +26,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link to="/peserta/dashboard">
+              <Link>
                 <div className="flex aspect-square size-12 items-center justify-center rounded-lg bg-white">
                   <img
                     src={mediaLogo[0]}

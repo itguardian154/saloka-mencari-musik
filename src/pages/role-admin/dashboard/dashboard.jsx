@@ -21,7 +21,7 @@ export default function DashboardSalokaMencariMusik() {
     };
   
     const decryptID = decryptData(decodeURIComponent(id), secretKey);
-    console.log(decryptID);
+    // console.log(decryptID);
   
     const [detailUser, setDetailUser] = useState({
       token: localStorage.getItem("token"),

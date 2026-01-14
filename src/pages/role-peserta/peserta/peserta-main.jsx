@@ -58,34 +58,12 @@ export default function PesertaMain() {
       -translate-y-1/2 rounded-full
       bg-emerald-400/35 blur-[140px] animate-beat-pulse" />
 
-     
-   {/* Floating music notes */}
-        <div className="absolute inset-0">
-          {[...Array(12)].map((_, i) => (
-            <svg
-              key={i}
-              className="absolute text-emerald-300/35 animate-note-float-random"
-              style={{
-                left: `${5 + Math.random() * 55}%`,
-                bottom: `${-30 + Math.random() * 40}%`,
-                width: `${18 + Math.random() * 20}px`,
-                height: `${18 + Math.random() * 20}px`,
-                animationDelay: `${Math.random() * 10}s`,
-                animationDuration: `${18 + Math.random() * 20}s`,
-              }}
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z" />
-            </svg>
-          ))}
-        </div>
         {/* Equalizer shadow */}
         <div className="absolute bottom-0 left-0 w-full flex items-end gap-1 px-6 opacity-[0.1]">
           {[...Array(24)].map((_, i) => (
             <div
               key={i}
-              className="w-[6px] rounded-full bg-emerald-400 animate-eq"
+              className="w-[6px] rounded-full bg-emerald-400"
               style={{
                 height: `${16 + (i % 6) * 18}px`,
                 animationDelay: `${i * 0.1}s`,
@@ -111,8 +89,28 @@ export default function PesertaMain() {
 
       {/* ================= CONTENT ================= */}
       <div className="relative grid grid-cols-12">
-
-        <div className="col-span-12 lg:col-span-3 p-6">
+        {/* Floating music notes */}
+        <div className="absolute inset-0">
+          {[...Array(10)].map((_, i) => (
+            <svg
+              key={i}
+              className="absolute text-emerald-300/35"
+              style={{
+                left: `${5 + Math.random() * 55}%`,
+                bottom: `${-30 + Math.random() * 40}%`,
+                width: `${18 + Math.random() * 20}px`,
+                height: `${18 + Math.random() * 20}px`,
+                animationDelay: `${Math.random() * 10}s`,
+                animationDuration: `${18 + Math.random() * 20}s`,
+              }}
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z" />
+            </svg>
+          ))}
+        </div>
+        <div className="col-span-12 lg:col-span-3 pt-6 pl-6">
           <div className="rounded-2xl bg-white/85 backdrop-blur-md
         shadow-lg border border-emerald-100">
             <ProfilePeserta id={decryptID} />

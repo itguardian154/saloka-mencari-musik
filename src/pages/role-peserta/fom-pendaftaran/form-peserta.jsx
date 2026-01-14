@@ -27,9 +27,9 @@ export default function FormPeserta() {
     return decryptedData;
   };
 
-  const decryptIDmusik = JSON.parse(
-    decryptData(decodeURIComponent(idMusik), secretKey)
-  );
+  // const decryptIDmusik = JSON.parse(
+  //   decryptData(decodeURIComponent(idMusik), secretKey)
+  // );
 
  // console.log("id musik",decryptIDmusik);
 
@@ -56,7 +56,7 @@ return (
             steps={steps}
             currentStep={currentStep}
             onStepChange={setCurrentStep}
-            idMusik={decryptIDmusik}
+            idMusik={idMusik}
           />
         </div>
       </div>

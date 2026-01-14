@@ -12,12 +12,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { InfoIcon } from "lucide-react";
+import { Check, ChevronsUpDown, InfoIcon } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { Search, Eye, ChevronLeft, ChevronRight, Filter, Download, FileSpreadsheet } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { Tooltip } from "@/components/ui/tooltip";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
@@ -31,7 +32,11 @@ import Swal from "sweetalert2";
 import CryptoJS from "crypto-js";
 
 
-export default function DataPeserta({ id }) {
+export default function DataPeserta() {
+  useEffect(() => {
+    document.title = "Saloka Mencari Musik";
+  }, []);
+
 
   const [detailUser, setDetailUser] = useState({
     token: localStorage.getItem("token"),
@@ -44,7 +49,7 @@ export default function DataPeserta({ id }) {
   }, []);
 
 
-  console.log(detailUser.token);
+  // console.log(detailUser.token);
   const secretKey = API_URLS.secretKey;
   const [dataPeserta, setDataPeserta] = useState([]);
   const [modalOpen, setModalOpen] = useState(null);
@@ -64,45 +69,23 @@ export default function DataPeserta({ id }) {
   const [changeData, setChangeData] = useState(false);
   const [detailPeserta, setDetailPeserta] = useState({});
   const [date, setDate] = useState(undefined)
-  const [filterData, setFilterData] = useState({})
-  const [listProvinsi, setListProvinsi] = useState([]);
-  const [listKota, setListKota] = useState([]);
-  const [valueForm, setValueForm] = useState({
+  const [filterData, setFilterData] = useState({
     province: "",
-    prov_id: "",
-    city_id: "",
+    province_id: "",
     city: "",
+    city_id: "",
+    genre: "",
+    genre_id: "",
   });
 
+  const navigate = useNavigate()
+  const [openCombobox, setOpenCombobox] = useState("");
 
   const encryptData = (data, secretKey) => {
     return CryptoJS.AES.encrypt(
       JSON.stringify(data),
       secretKey
     ).toString();
-  };
-
-  const alertMessage = (type, title, message) => {
-    Swal.fire({
-      icon: type,
-      title: title,
-      text: message,
-      showConfirmButton: false,
-      timer: 1500,
-    });
-  };
-
-  const alertLoading = () => {
-    Swal.fire({
-      title: "Sedang diproses..",
-      text: "Jangan tutup halaman web ini.",
-      timerProgressBar: true,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
   };
 
   const clearData = () => {
@@ -119,25 +102,9 @@ export default function DataPeserta({ id }) {
     setSortOrder((prev) => (prev == "asc" ? "desc" : "asc"));
   };
 
-  const handleDropdownOpen = (index) => {
-    setDropdownOpen((prevDropdownOpen) =>
-      prevDropdownOpen === index ? null : index
-    );
-    setSearchData("");
+  const handleOpenCombobox = (index) => {
+    setOpenCombobox((prev) => (prev === index ? "" : index));
   };
-  // const wilayah = {
-  //   "Jawa Tengah": ["Semarang", "Solo", "Magelang"],
-  //   "Jawa Barat": ["Bandung", "Bekasi", "Bogor"],
-  //   "DKI Jakarta": ["Jakarta Pusat", "Jakarta Selatan"],
-  // }
-
-  const navigate = useNavigate()
-  const handleOpenDetailPeserta = (data) => {
-    navigate(`/admin/daftar-peserta/detail-peserta/${id}`, {
-      state: data, // kirim data peserta (frontend dulu)
-    })
-  }
-
 
   useEffect(() => {
     if (!detailUser?.token) return;
@@ -146,8 +113,8 @@ export default function DataPeserta({ id }) {
       setLoadingData(true);
       try {
         const response = await axios.get(
-          `${API_URLS.mencariMusik}/composers?page=${pageData}&search=${searchData}&sortBy=${sortBy}&sortOrder=${sortOrder}&itemPerPage=${itemPerPage}&province=${!filterData.province ? '' : filterData.province}
-          &city=${!filterData.city ? '' : filterData.city}`,
+          `${API_URLS.mencariMusik}/composers?page=${pageData}&no_pagination=false&search=${searchData}&sortBy=${sortBy}&sortOrder=${sortOrder}&per_page=${itemPerPage}&province=${!filterData.province ? '' : filterData.province}
+          &city=${!filterData.city ? '' : filterData.city}&genre=${!filterData.genre ? '' : filterData.genre}`,
           {
             headers: {
               Accept: "application/json",
@@ -157,12 +124,12 @@ export default function DataPeserta({ id }) {
         );
 
         if (response.status === 200 && response.data.status === true) {
-          setDataPeserta(response.data.data ?? []);
-          setCurrentPage(response.data.current_page);
-          setLastPage(response.data.last_page);
-          setTotalData(response.data.total);
-          setFromPage(response.data.from);
-          setToPage(response.data.to);
+          setDataPeserta(response.data.data.data ?? []);
+          setCurrentPage(response.data.data.current_page);
+          setLastPage(response.data.data.last_page);
+          setTotalData(response.data.data.total);
+          setFromPage(response.data.data.from);
+          setToPage(response.data.data.to);
         } else {
           clearData();
         }
@@ -180,8 +147,6 @@ export default function DataPeserta({ id }) {
   }, [
     pageData,
     searchData,
-    sortBy,
-    sortOrder,
     itemPerPage,
     filterData,
     changeData,
@@ -214,13 +179,16 @@ export default function DataPeserta({ id }) {
   }, []);
 
 
-  const handleSelectedProvice = (prov) => {
-    setValueForm((prev) => ({
+  const handleSelectedProvince = (prov) => {
+    setFilterData((prev) => ({
       ...prev,
       province: prov.prov_name,
-      prov_id: prov.prov_id,
+      province_id: prov.prov_id,
+      city: "",
+      city_id: "",
     }));
 
+    setPageData(1);
     setOpenCombobox("");
   };
   // Get Data Provinsi End
@@ -229,7 +197,7 @@ export default function DataPeserta({ id }) {
   const [dataCity, setDataCity] = useState([]);
 
   useEffect(() => {
-    if (!valueForm.prov_id) {
+    if (!filterData.province_id) {
       setDataCity([]);
       return;
     }
@@ -237,7 +205,7 @@ export default function DataPeserta({ id }) {
     const getDataCity = async () => {
       try {
         const response = await axios.get(
-          `${API_URLS.crm}api/get_cities?id_province=${valueForm.prov_id}`
+          `${API_URLS.crm}api/get_cities?id_province=${filterData.province_id}`
         );
 
         if (response.status === 200 && response.data.status === "success") {
@@ -252,29 +220,50 @@ export default function DataPeserta({ id }) {
     };
 
     getDataCity();
-  }, [valueForm.prov_id]);
+  }, [filterData.province_id]);
+
 
   const handleSelectedCity = (city) => {
-    setValueForm((prev) => ({
+    setFilterData((prev) => ({
       ...prev,
       city: city.city_name,
       city_id: city.city_id,
     }));
 
+    setPageData(1);
     setOpenCombobox("");
   };
   // Get Data City End
 
+  /* ===================== GENRE ===================== */
+  const [dataGenre, setDataGenre] = useState([]);
 
+  useEffect(() => {
+    const getDataGenre = async () => {
+      try {
+        const res = await axios.get(
+          `${API_URLS.mencariMusik}/genres`
+        );
+        if (res.status === 200 && res.data.status === true) {
+          setDataGenre(res.data.data);
+        }
+      } catch (err) {
+        console.error(err);
+        setDataGenre([]);
+      }
+    };
+    getDataGenre();
+  }, []);
 
-  // const handleOpenDetailPeserta = (data) => {
-  //   handleOpenModal("detail-peserta");
-  //   setDetailPeserta(data);
-  // };
+  const handleSelectedGenre = (gen) => {
+    setFilterData((prev) => ({
+      ...prev,
+      genre: gen.name,
+      genre_id: gen.id,
+    }));
 
-  const handleCloseDetailPeserta = () => {
-    handleOpenModal(null);
-    setDetailPeserta({});
+    setPageData(1);
+    setOpenCombobox("");
   };
 
   const handleNextPage = () => {
@@ -289,7 +278,6 @@ export default function DataPeserta({ id }) {
     }
   };
 
-
   return (
     <>
       <div className="w-full flex flex-col gap-4 py-1 bg-white dark:bg-slate-800 rounded-lg">
@@ -303,6 +291,8 @@ export default function DataPeserta({ id }) {
         <div className="relative w-full max-w-md">
           <Input
             type="text"
+            value={searchData}
+            onChange={(e) => setSearchData(e.target.value)}
             placeholder="Cari Data Peserta Disini"
             className="w-full max-w-md px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 rounded-full focus:outline-none focus:border-primer-60 text-slate-700 dark:text-slate-50 text-sm focus:ring-2 focus:ring-primer-40"
             autoComplete="off"
@@ -375,138 +365,168 @@ export default function DataPeserta({ id }) {
 
           {/* PROVINSI */}
           <div className="w-full flex flex-col gap-2">
-            <Label className="font-medium text-sm">Provinsi</Label>
+            <Label>Provinsi</Label>
 
-            <Select
-              value={valueForm.prov_id || "all"}
-              onValueChange={(value) => {
-                if (value === "all") {
-                  setValueForm({
-                    province: "",
-                    prov_id: "",
-                    city: "",
-                    city_id: "",
-                  });
-                  return;
-                }
-
-                const selectedProv = dataProvince.find(
-                  (prov) => prov.prov_id === value
-                );
-
-                setValueForm({
-                  province: selectedProv?.prov_name || "",
-                  prov_id: selectedProv?.prov_id || "",
-                  city: "",
-                  city_id: "",
-                });
-              }}
+            <Popover
+              open={openCombobox === "province"}
+              onOpenChange={() => handleOpenCombobox("province")}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Semua Provinsi" />
-              </SelectTrigger>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between h-11"
+                >
+                  {filterData.province || "Pilih provinsi"}
+                  <ChevronsUpDown className="opacity-50" />
+                </Button>
+              </PopoverTrigger>
 
-              <SelectContent>
-                <SelectItem value="all">Semua Provinsi</SelectItem>
+              <PopoverContent className="w-full min-w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Cari provinsi" className="h-9" />
 
-                {dataProvince.map((prov) => (
-                  <SelectItem key={prov.prov_id} value={prov.prov_id}>
-                    {prov.prov_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  <CommandList>
+                    <CommandEmpty>Provinsi tidak ditemukan</CommandEmpty>
+
+                    <CommandGroup>
+                      <CommandItem
+                        value=""
+                        onSelect={() => handleSelectedProvince("")}
+                      >
+                        SEMUA PROVINSI
+                        {!filterData.province && (
+                          <Check className="ml-auto opacity-100" />
+                        )}
+                      </CommandItem>
+                      {dataProvince.map((prov) => (
+                        <CommandItem
+                          key={prov.prov_id}
+                          value={prov.prov_name}
+                          onSelect={() => handleSelectedProvince(prov)}
+                        >
+                          {prov.prov_name}
+                          {filterData.province_id === prov.prov_id && (
+                            <Check className="ml-auto opacity-100" />
+                          )}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* KOTA */}
           <div className="w-full flex flex-col gap-2">
-            <Label className="font-medium text-sm">Kota</Label>
-            <Select
-              value={valueForm.city_id || "all"}
-              disabled={!valueForm.prov_id}
-              onValueChange={(value) => {
-                if (value === "all") {
-                  setValueForm((prev) => ({
-                    ...prev,
-                    city: "",
-                    city_id: "",
-                  }));
-                  return;
-                }
+            <Label>Kabupaten / Kota</Label>
+            <Popover open={openCombobox === "city"} onOpenChange={() => handleOpenCombobox("city")}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between h-11"
+                  disabled={!filterData.province}
+                >
+                  {filterData.city || "Pilih kabupaten / kota"}
+                  <ChevronsUpDown className="opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full min-w-80 p-0">
+                <Command>
+                  <CommandInput placeholder="Cari kabupaten / kota" className="h-9" />
+                  <CommandList>
+                    <CommandEmpty>Kota tidak ditemukan</CommandEmpty>
+                    <CommandGroup>
 
-                const selectedCity = dataCity.find(
-                  (city) => city.city_id === value
-                );
-
-                setValueForm((prev) => ({
-                  ...prev,
-                  city: selectedCity?.city_name || "",
-                  city_id: selectedCity?.city_id || "",
-                }));
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Semua Kota" />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value="all">Semua Kota</SelectItem>
-
-                {dataCity.map((city) => (
-                  <SelectItem key={city.city_id} value={city.city_id}>
-                    {city.city_name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                      <CommandItem
+                        value=""
+                        onSelect={() => handleSelectedCity("")}
+                      >
+                        SEMUA KOTA
+                        {!filterData.city && (
+                          <Check className="ml-auto opacity-100" />
+                        )}
+                      </CommandItem>
+                      {dataCity.map((city) => (
+                        <CommandItem
+                          key={city.city_id}
+                          onSelect={() => handleSelectedCity(city)}
+                        >
+                          {city.city_name}
+                          {filterData.city_id === city.city_id && (
+                            <Check className="ml-auto opacity-100" />
+                          )}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
-          {/* GENRE */}
+          {/* Genre */}
           <div className="w-full flex flex-col gap-2">
-            <Label className="font-medium text-sm">Genre</Label>
-
-            <Select
-              value={filterData.genre}
-              onValueChange={(value) =>
-                setFilterData({ ...filterData, genre: value })
-              }
+            <Label htmlFor="genre" className="text-emerald-50">Genre</Label>
+            <Popover
+              open={openCombobox === "genre"}
+              onOpenChange={(open) => setOpenCombobox(open ? "genre" : "")}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih Genre" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="pop">Pop</SelectItem>
-                <SelectItem value="rock">Rock</SelectItem>
-                <SelectItem value="jazz">Jazz</SelectItem>
-                <SelectItem value="dangdut">Dangdut</SelectItem>
-              </SelectContent>
-            </Select>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between h-11"
+                >
+                  {filterData.genre || "Pilih genre"}
+                  <ChevronsUpDown className="opacity-50" />
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent className="w-full min-w-80 p-0">
+                <Command className="bg-transparent">
+                  <CommandInput placeholder="Cari genre" className="h-9" />
+                  <CommandList>
+                    <CommandEmpty>No genre found.</CommandEmpty>
+
+                    <CommandGroup>
+                      {dataGenre.map((gen) => (
+                        <CommandItem
+                          key={gen.id}
+                          value={gen.name}
+                          onSelect={() => handleSelectedGenre(gen)}
+                        >
+                          {gen.name}
+                          {filterData.genre_id === gen.id && (
+                            <Check className="ml-auto h-4 w-4 opacity-100" />
+                          )}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
         </div>
       )}
 
-      <div className="w-full flex flex-wrap items-center justify-between px-4 lg:px-2 py-0.5 gap-2 border-slate-100 dark:border-slate-700">
+      <div className="w-full flex flex-wrap items-center justify-between py-1 sm:gap-3 border-slate-100 dark:border-slate-700">
         {/* Kiri: Rows per page & Page info */}
         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
-
-          {/* Rows per page (DESKTOP SAJA) */}
-          <div className="hidden lg:flex items-center gap-2">
-            <span className="whitespace-nowrap">Rows per page</span>
-            <select
-              id="show-entries"
-              onChange={(e) => setItemPerPage(e.target.value)}
-              value={itemPerPage}
-              className="cursor-pointer text-xs dark:bg-slate-800 bg-white border-none rounded-lg focus:ring-0 block w-fit p-2.5 dark:text-white"
-            >
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="75">75</option>
-              <option value="100">100</option>
-            </select>
-          </div>
-
-          {/* Page info (MOBILE & DESKTOP) */}
+          <span className="whitespace-nowrap">Rows per page</span>
+          <select
+            id="show-entries"
+            onChange={(e) => setItemPerPage(e.target.value)}
+            value={itemPerPage}
+            className="over:outline-none text-xs cursor-pointer dark:bg-slate-800 bg-white border-none text-gray-900 active:ring-0 active:border-none active:outline-none rounded-lg focus:ring-0 block w-fit p-2.5  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-0 dark:focus:border-none"
+          >
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="75">75</option>
+            <option value="100">100</option>
+          </select>
           <span className="font-semibold whitespace-nowrap">
             Page {currentPage} of {lastPage}
           </span>
@@ -622,27 +642,27 @@ export default function DataPeserta({ id }) {
               dataPeserta?.map((item, index) => (
                 <tr className="bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-600">
                   <td
-                    className="pl-6 pr-3 py-3 text-sm tracking-wide text-center border-x-2 border-l-0 border-gray-200 dark:border-gray-600 whitespace-nowrap"
+                    className="pl-6 pr-2 py-2 text-sm tracking-wide text-center border-x-2 border-l-0 border-gray-200 dark:border-gray-600 whitespace-nowrap"
                     key={index}
                   >
                     {index + 1}
                   </td>
-                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
+                  <td className="p-2 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
                     {item?.id}
                   </td>
-                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
+                  <td className="p-2 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
                     {item?.name}
                   </td>
-                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
+                  <td className="p-2 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
                     {item?.whatsapp}
                   </td>
-                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
+                  <td className="p-2 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
                     {item?.email}
                   </td>
-                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                    {item?.district}, {item?.city}, {item?.province}
+                  <td className="p-2 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
+                    {item?.city}, {item?.province}
                   </td>
-                  <td className="p-3 text-sm text-left border-x-2 whitespace-nowrap align-top">
+                  <td className="p-2 text-sm text-left border-x-2 whitespace-nowrap align-top">
                     {item?.music_works
                       ?.filter(work => work.title)
                       .map((work, index) => (
@@ -652,7 +672,7 @@ export default function DataPeserta({ id }) {
                       ))}
                   </td>
 
-                  <td className="p-3 text-sm text-left border-x-2 whitespace-nowrap align-top">
+                  <td className="p-2 text-sm text-left border-x-2 whitespace-nowrap align-top">
                     <ol className="list-decimal list-inside space-y-1">
                       {item?.music_works
                         ?.filter(work => work.genre)
@@ -662,27 +682,25 @@ export default function DataPeserta({ id }) {
                     </ol>
                   </td>
 
-                  <td className="p-3 text-sm text-left border-x-2 whitespace-nowrap align-top">
+                  <td className="p-2 text-sm text-left border-x-2 whitespace-nowrap align-top">
                     <div className="flex flex-col gap-1 w-fit">
-                      {item?.music_works?.map((work, index) => (
-                        <span
-                          key={index}
-                          className={
-                            work.status === "submitted"
-                              ? "bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300 whitespace-nowrap w-fit"
-                              : work.status === "approved"
+                      {item?.music_works
+                        ?.filter((work) => work.status !== "submitted")
+                        .map((work, index) => (
+                          <span
+                            key={index}
+                            className={
+                              work.status === "approved"
                                 ? "bg-emerald-100 text-emerald-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-emerald-900 dark:text-emerald-300 whitespace-nowrap w-fit"
                                 : ""
-                          }
-                        >
-                          {work.status === "submitted" && "Submitted"}
-                          {work.status === "approved" && "Approved"}
-                        </span>
-                      ))}
+                            }
+                          >
+                            {work.status === "approved" && "Approved"}
+                          </span>
+                        ))}
                     </div>
                   </td>
-
-                  <td className="p-3 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
+                  <td className="p-2 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
                     <div className="w-full flex items-center justify-center gap-2 px-2">
                       <Tooltip title="Detail Peserta">
                         <button
@@ -702,7 +720,6 @@ export default function DataPeserta({ id }) {
                 </tr>
               ))}
           </tbody>
-
         </table>
       </div>
 

@@ -78,15 +78,16 @@ export function DaftarAudio({ id }) {
   const hasPaidAccess = detailMusik.find(
     (item) =>
       item.payment_status === "paid" &&
-      item.status !== "approved"
+      (item.status == "submitted" || item.status == "draft")
   );
+
   //console.log("ini id musik", hasPaidAccess.id)  
   const approvedMusics = detailMusik.filter(
     (item) => item.status === "approved"
   );
 
   const isEmptyMusic =
-    detailMusik.length === 0;
+    !hasPaidAccess && !approvedMusics
   // Get Data Musik by ID End
 
 
@@ -281,9 +282,7 @@ export function DaftarAudio({ id }) {
                   className="w-full md:w-auto"
                   onClick={() =>
                     navigate(
-                      `/participant/form/${encodeURIComponent(
-                        encryptData(hasPaidAccess.id, secretKey)
-                      )}`
+                      `/participant/form/${hasPaidAccess.id}`
                     )
                   }
                 >

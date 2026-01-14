@@ -25,16 +25,19 @@ createRoot(document.getElementById('root')).render(
         {/* PUBLIC */}
         <Route path="/" element={<AuthPage />} />
         <Route path="/signup" element={<SignUpPage />} />
-        <Route element={<Layout />}>
-          <Route path="/admin/daftar-peserta" element={<DataPeserta />} />
-        </Route>
         <Route path="/validate-otp/:phone" element={<ValidateOtpForm />} />
 
-        <Route element={<Layout />}>
-          <Route path="/admin/daftar-peserta/detail-peserta/:id" element={<DetailPeserta />} />
-        </Route>
-        <Route element={<Layout />}>
-          <Route path="/admin/dashboard" element={<DashboardPeserta />} />
+        {/* ADMIN ONLY */}
+        <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+          <Route element={<Layout />}>
+            <Route path="/admin/daftar-peserta" element={<DataPeserta />} />
+          </Route>
+          <Route element={<Layout />}>
+            <Route path="/admin/daftar-peserta/detail-peserta/:id" element={<DetailPeserta />} />
+          </Route>
+          <Route element={<Layout />}>
+            <Route path="/admin/dashboard" element={<DashboardPeserta />} />
+          </Route>
         </Route>
 
         {/* PESERTA ONLY */}
