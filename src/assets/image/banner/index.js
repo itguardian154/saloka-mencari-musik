@@ -1,3 +1,3 @@
-import bannerSoundloka from "./SMM banner.svg";
+import bannerSoundloka from "./SMM.webp";
 
 export const mediaBanner = [bannerSoundloka, ];
