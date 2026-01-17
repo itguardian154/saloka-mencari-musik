@@ -1,35 +1,32 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Check, ChevronsUpDown, InfoIcon } from "lucide-react";
+import { Check, ChevronsUpDown, Search, Eye, ChevronDown, ChevronUp, Edit, ChevronRight, Filter, FileSpreadsheet, RotateCcw } from "lucide-react";
 import { Navigate } from "react-router-dom";
-import { Search, Eye, ChevronLeft, ChevronRight, Filter, Download, FileSpreadsheet } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar"
 import { Calendar as CalendarIcon } from "lucide-react"
-import { Tooltip } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { set } from "date-fns";
+import { format } from "date-fns";
 import axios from "axios";
 import API_URLS from "../../../../config";
-import Swal from "sweetalert2";
 import CryptoJS from "crypto-js";
+import { DataTable } from "@/components/ui/data-table";
+import { toast } from "sonner"
+import moment from "moment";
 
 
 export default function DataPeserta() {
@@ -52,8 +49,6 @@ export default function DataPeserta() {
   // console.log(detailUser.token);
   const secretKey = API_URLS.secretKey;
   const [dataPeserta, setDataPeserta] = useState([]);
-  const [modalOpen, setModalOpen] = useState(null);
-  const [dropdownOpen, setDropdownOpen] = useState(null);
   const [filterShow, setFilterShow] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [searchData, setSearchData] = useState("");
@@ -66,9 +61,10 @@ export default function DataPeserta() {
   const [sortBy, setSortBy] = useState("");
   const [sortOrder, setSortOrder] = useState("");
   const [itemPerPage, setItemPerPage] = useState(25);
-  const [changeData, setChangeData] = useState(false);
-  const [detailPeserta, setDetailPeserta] = useState({});
-  const [date, setDate] = useState(undefined)
+  const [date, setDate] = useState({
+    from: undefined,
+    to: undefined,
+  });
   const [filterData, setFilterData] = useState({
     province: "",
     province_id: "",
@@ -88,6 +84,7 @@ export default function DataPeserta() {
     ).toString();
   };
 
+
   const clearData = () => {
     setDataPeserta([]);
     setCurrentPage(1);
@@ -95,11 +92,6 @@ export default function DataPeserta() {
     setLastPage(1);
     setTotalData(0);
     setItemPerPage(10);
-  };
-
-  const sortBySortOrder = (sortBy) => {
-    setSortBy(sortBy);
-    setSortOrder((prev) => (prev == "asc" ? "desc" : "asc"));
   };
 
   const handleOpenCombobox = (index) => {
@@ -114,7 +106,9 @@ export default function DataPeserta() {
       try {
         const response = await axios.get(
           `${API_URLS.mencariMusik}/composers?page=${pageData}&no_pagination=false&search=${searchData}&sortBy=${sortBy}&sortOrder=${sortOrder}&per_page=${itemPerPage}&province=${!filterData.province ? '' : filterData.province}
-          &city=${!filterData.city ? '' : filterData.city}&genre=${!filterData.genre ? '' : filterData.genre}`,
+          &city=${!filterData.city ? '' : filterData.city}&genre=${!filterData.genre ? '' : filterData.genre}&date_start=${date?.from ? moment(date.from).format("YYYY-MM-DD") : ""}
+          &date_end=${date?.to ? moment(date.to).format("YYYY-MM-DD") : ""}
+          `,
           {
             headers: {
               Accept: "application/json",
@@ -149,8 +143,8 @@ export default function DataPeserta() {
     searchData,
     itemPerPage,
     filterData,
-    changeData,
-    detailUser?.token
+    detailUser?.token,
+    date
   ]);
 
 
@@ -278,6 +272,244 @@ export default function DataPeserta() {
     }
   };
 
+  // Re generate payment Start
+  const handleReGenerate = async (composerId) => {
+    try {
+      const response = await axios({
+        method: "POST",
+        url: `${API_URLS.mencariMusik}/music-works`,
+        data: {
+          composer_id: composerId,
+          type_register: "re-generate",
+        },
+        headers: {
+          Authorization: `Bearer ${detailUser.token}`,
+        },
+      })
+
+      if (response.status === 200 && response.data.status === true) {
+        toast.success("Karya berhasil di-generate ulang 🎵")
+      } else {
+        toast.error(
+          response.data?.message || "Gagal melakukan re-generate karya"
+        )
+      }
+    } catch (error) {
+      console.error(error)
+
+      toast.error(
+        error.response?.data?.message ||
+        "Terjadi kesalahan saat re-generate karya"
+      )
+    }
+  }
+  // Re generate payment End
+
+  // Export Start
+  const getExportQuery = () =>
+    `export=excel
+  &province=${filterData.province || ""}
+  &city=${filterData.city || ""}
+  &genre=${filterData.genre || ""}
+  &date_start=${date?.from ? moment(date.from).format("YYYY-MM-DD") : ""}
+  &date_end=${date?.to ? moment(date.to).format("YYYY-MM-DD") : ""}`;
+
+  const handleExportExcel = () => {
+    const exportUrl = `${API_URLS.mencariMusik}/composers?${getExportQuery()}`;
+    console.log(exportUrl);
+    window.open(exportUrl, "_blank");
+  };
+  // Export End
+
+
+  const columns = [
+    {
+      id: "no",
+      header: "#",
+      cell: ({ row }) => row.index + 1,
+    },
+    {
+      accessorKey: "name",
+      header: "Nama Peserta",
+    },
+    {
+      accessorKey: "created_at",
+      header: "Tanggal",
+      cell: ({ row }) => {
+        const date = new Date(row.getValue("created_at"))
+
+        return date.toLocaleDateString("id-ID", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      },
+    },
+
+    {
+      accessorKey: "whatsapp",
+      header: "Whatsapp",
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+    },
+    {
+      id: "alamat",
+      header: "Alamat",
+      cell: ({ row }) => (
+        <span>
+          {row.original.city}, {row.original.province}
+        </span>
+      ),
+    },
+
+    {
+      header: "Detail Karya",
+      columns: [
+        {
+          id: "judul",
+          header: "Judul Karya",
+          cell: ({ row }) => (
+            <div className="space-y-4">
+              {row.original.music_works?.map((w, i) => (
+                <div key={w.id} className="min-h-fit">
+                  {i + 1}. {w.title || "-"}
+                </div>
+              ))}
+            </div>
+          ),
+        },
+        {
+          id: "genre",
+          header: "Genre",
+          cell: ({ row }) => (
+            <div className="space-y-4">
+              {row.original.music_works?.map((w, i) => (
+                <div key={w.id} className="min-h-[22px]">
+                  {i + 1}. {w.genre || "-"}
+                </div>
+              ))}
+            </div>
+          ),
+        },
+        {
+          id: "invoice",
+          header: "Invoice ID",
+          cell: ({ row }) => (
+            <div className="space-y-4 text-xs">
+              {row.original.music_works?.map((w, i) => (
+                <div key={w.id} className="min-h-[22px]">
+                  {i + 1}. {w.invoice_id || "-"}
+                </div>
+              ))}
+            </div>
+          ),
+        },
+        {
+          id: "payment",
+          header: "Payment Method",
+          cell: ({ row }) => (
+            <div className="space-y-4 text-xs">
+              {row.original.music_works?.map((w, i) => (
+                <div key={w.id} className="min-h-[22px]">
+                  {i + 1}. {w.payment_method || "-"}
+                </div>
+              ))}
+            </div>
+          ),
+        },
+        {
+          id: "status",
+          header: "Status",
+          cell: ({ row }) => (
+            <div className="space-y-4">
+              {row.original.music_works?.map((w, i) => (
+                <div key={w.id} className="min-h-[22px] flex items-center">
+                  <span
+                    className={`text-xs capitalize px-2 py-0.5 rounded-full
+                  ${w.status === "approved"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : w.status === "submitted"
+                          ? "bg-sky-100 text-sky-800"
+                          : "bg-amber-100 text-amber-800"
+                      }`}
+                  >
+                    {w.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ),
+        },
+        {
+          id: "generate",
+          header: "Generate",
+          cell: ({ row }) => (
+            <div className="space-y-4">
+              {row.original.music_works?.map((w) => (
+                <div key={w.id} className="min-h-[22px]">
+                  {w.status === "draft" &&
+                    w.payment_status === "expired" && (
+                      <button
+                        onClick={() => handleReGenerate(w.composer_id)}
+                        className="
+                      text-[11px] px-1 py-0
+                      border border-sky-300
+                      rounded-md
+                      bg-sky-600 text-white
+                      hover:bg-sky-700
+                    "
+                      >
+                        Re-generate
+                      </button>
+                    )}
+                </div>
+              ))}
+            </div>
+          ),
+        },
+      ],
+    },
+
+    {
+      id: "action",
+      header: "Action",
+      enableHiding: false,
+      cell: ({ row }) => (
+        <>
+          <div className="flex flex-row gap-2">
+            <button
+              onClick={() =>
+                navigate(
+                  `/admin/daftar-peserta/detail-peserta/${encodeURIComponent(
+                    encryptData(row.original.id, secretKey)
+                  )}`
+                )
+              }
+              className="w-8 h-8 flex items-center justify-center bg-amber-100 text-amber-800 rounded-lg hover:bg-amber-600 hover:text-white"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() =>
+                navigate(
+                  `/admin/edit-profile/${encodeURIComponent(
+                    encryptData(row.original.id, secretKey)
+                  )}`
+                )
+              }
+              className="w-8 h-8 flex items-center justify-center bg-sky-100 text-sky-800 rounded-lg hover:bg-sky-600 hover:text-white"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
+          </div>
+        </>
+      ),
+    },
+  ]
+
+
   return (
     <>
       <div className="w-full flex flex-col gap-4 py-1 bg-white dark:bg-slate-800 rounded-lg">
@@ -321,6 +553,7 @@ export default function DataPeserta() {
           {/* EXPORT */}
           <Button
             type="button"
+            onClick={handleExportExcel}
             className="w-fit xl:w-fit flex items-center justify-center gap-2 px-4 py-2.5 rounded-full font-medium bg-sky-600 hover:bg-sky-500 text-white text-sm whitespace-nowrap"
           >
             <FileSpreadsheet className="h-4 w-4" />
@@ -340,7 +573,7 @@ export default function DataPeserta() {
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="justify-start text-left font-normal"
+                  className="justify-start text-left font-normal h-11"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {date?.from
@@ -365,7 +598,7 @@ export default function DataPeserta() {
 
           {/* PROVINSI */}
           <div className="w-full flex flex-col gap-2">
-            <Label>Provinsi</Label>
+            <Label className="font-medium text-sm">Provinsi</Label>
 
             <Popover
               open={openCombobox === "province"}
@@ -419,7 +652,7 @@ export default function DataPeserta() {
 
           {/* KOTA */}
           <div className="w-full flex flex-col gap-2">
-            <Label>Kabupaten / Kota</Label>
+            <Label className="font-medium text-sm">Kabupaten / Kota</Label>
             <Popover open={openCombobox === "city"} onOpenChange={() => handleOpenCombobox("city")}>
               <PopoverTrigger asChild>
                 <Button
@@ -467,7 +700,7 @@ export default function DataPeserta() {
 
           {/* Genre */}
           <div className="w-full flex flex-col gap-2">
-            <Label htmlFor="genre" className="text-emerald-50">Genre</Label>
+            <Label className="font-medium text-sm">Genre</Label>
             <Popover
               open={openCombobox === "genre"}
               onOpenChange={(open) => setOpenCombobox(open ? "genre" : "")}
@@ -486,9 +719,18 @@ export default function DataPeserta() {
                 <Command className="bg-transparent">
                   <CommandInput placeholder="Cari genre" className="h-9" />
                   <CommandList>
-                    <CommandEmpty>No genre found.</CommandEmpty>
+                    <CommandEmpty>Genre Tidak Ditemukan</CommandEmpty>
 
                     <CommandGroup>
+                      <CommandItem
+                        value=""
+                        onSelect={() => handleSelectedGenre("")}
+                      >
+                        SEMUA GENRE
+                        {!filterData.genre && (
+                          <Check className="ml-auto opacity-100" />
+                        )}
+                      </CommandItem>
                       {dataGenre.map((gen) => (
                         <CommandItem
                           key={gen.id}
@@ -508,13 +750,12 @@ export default function DataPeserta() {
               </PopoverContent>
             </Popover>
           </div>
-
         </div>
       )}
 
       <div className="w-full flex flex-wrap items-center justify-between py-1 sm:gap-3 border-slate-100 dark:border-slate-700">
         {/* Kiri: Rows per page & Page info */}
-        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
+        {/* <div className="flex flex-wrap items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
           <span className="whitespace-nowrap">Rows per page</span>
           <select
             id="show-entries"
@@ -530,10 +771,10 @@ export default function DataPeserta() {
           <span className="font-semibold whitespace-nowrap">
             Page {currentPage} of {lastPage}
           </span>
-        </div>
+        </div> */}
 
         {/* Kanan: Pagination Control */}
-        <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
+        {/* <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
           <span className="whitespace-nowrap">
             {fromPage || "0"}-{toPage || "0"} of {totalData} Row
           </span>
@@ -553,174 +794,22 @@ export default function DataPeserta() {
               <ChevronRight className="w-2.5 h-2.5" />
             </button>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* desktop view */}
-      <div className="hidden xl:block w-full bg-white dark:bg-slate-800 overflow-x-auto">
-        <table className="table-auto w-full">
-          <thead className="border-y-2 dark:border-y-gray-600 bg-gray-100 dark:bg-gray-700">
-            <tr>
-              <th className="pl-6 pr-3 py-3 text-xs tracking-wide text-center border-x-2 border-l-0 border-gray-200 dark:border-gray-600 whitespace-nowrap"
-                rowSpan={2}
-              >
-                #
-              </th>
-              <th className="p-3 text-xs tracking-wide text-center border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap"
-                rowSpan={2}
-              >
-                ID Registrasi
-              </th>
-              <th className="p-3 text-xs tracking-wide text-center border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap"
-                rowSpan={2}
-              >
-                Nama Peserta
-              </th>
-
-              <th className="p-3 text-xs tracking-wide text-center border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap"
-                rowSpan={2}
-              >
-                Whatsapp
-              </th>
-              <th className="p-3 text-xs tracking-wide text-center border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap"
-                rowSpan={2}
-              >
-                Email
-              </th>
-              <th className="p-3 text-xs tracking-wide text-center border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap"
-                rowSpan={2}
-              >
-                Alamat
-              </th>
-              <th className="p-3 text-xs tracking-wide text-center border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap"
-                colSpan={3}
-              >
-                Detail Karya
-              </th>
-              <th className="pr-6 pl-3 py-3 text-xs tracking-wide text-center border-x-2 border-r-0 border-gray-200 dark:border-gray-600"
-                rowSpan={2}
-              >
-                Action
-              </th>
-            </tr>
-            <tr className="border-y-2 dark:border-y-gray-600">
-              <th className="p-3 text-xs text-center border-x-2">
-                Judul Karya
-              </th>
-              <th className="p-3 text-xs text-center border-x-2">
-                Genre
-              </th>
-              <th className="p-3 text-xs text-center border-x-2">
-                Status
-              </th>
-            </tr>
-          </thead>
-          <tbody className="border-b-2 border-gray-200 dark:border-gray-600">
-            {loadingData && (
-              <tr className="bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-600">
-                <td
-                  className="p-3 text-sm tracking-wide text-center border-gray-200 dark:border-gray-600"
-                  colSpan={11}
-                >
-                  Proses mengambil data...
-                </td>
-              </tr>
-            )}
-
-            {!loadingData && dataPeserta?.length === 0 && (
-              <tr className="bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-600">
-                <td
-                  className="p-3 text-sm tracking-wide text-center border-gray-200 dark:border-gray-600"
-                  colSpan={11}
-                >
-                  Data saat ini kosong
-                </td>
-              </tr>
-            )}
-
-            {!loadingData &&
-              dataPeserta?.map((item, index) => (
-                <tr className="bg-white dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-600">
-                  <td
-                    className="pl-6 pr-2 py-2 text-sm tracking-wide text-center border-x-2 border-l-0 border-gray-200 dark:border-gray-600 whitespace-nowrap"
-                    key={index}
-                  >
-                    {index + 1}
-                  </td>
-                  <td className="p-2 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                    {item?.id}
-                  </td>
-                  <td className="p-2 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                    {item?.name}
-                  </td>
-                  <td className="p-2 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                    {item?.whatsapp}
-                  </td>
-                  <td className="p-2 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                    {item?.email}
-                  </td>
-                  <td className="p-2 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600 whitespace-nowrap">
-                    {item?.city}, {item?.province}
-                  </td>
-                  <td className="p-2 text-sm text-left border-x-2 whitespace-nowrap align-top">
-                    {item?.music_works
-                      ?.filter(work => work.title)
-                      .map((work, index) => (
-                        <div key={work.id}>
-                          {index + 1}. {work.title}
-                        </div>
-                      ))}
-                  </td>
-
-                  <td className="p-2 text-sm text-left border-x-2 whitespace-nowrap align-top">
-                    <ol className="list-decimal list-inside space-y-1">
-                      {item?.music_works
-                        ?.filter(work => work.genre)
-                        .map((work, index) => (
-                          <li key={work.id}>{work.genre}</li>
-                        ))}
-                    </ol>
-                  </td>
-
-                  <td className="p-2 text-sm text-left border-x-2 whitespace-nowrap align-top">
-                    <div className="flex flex-col gap-1 w-fit">
-                      {item?.music_works
-                        ?.filter((work) => work.status !== "submitted")
-                        .map((work, index) => (
-                          <span
-                            key={index}
-                            className={
-                              work.status === "approved"
-                                ? "bg-emerald-100 text-emerald-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-emerald-900 dark:text-emerald-300 whitespace-nowrap w-fit"
-                                : ""
-                            }
-                          >
-                            {work.status === "approved" && "Approved"}
-                          </span>
-                        ))}
-                    </div>
-                  </td>
-                  <td className="p-2 text-sm tracking-wide text-left border-x-2 border-gray-200 dark:border-gray-600">
-                    <div className="w-full flex items-center justify-center gap-2 px-2">
-                      <Tooltip title="Detail Peserta">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigate(`/admin/daftar-peserta/detail-peserta/${encodeURIComponent(
-                              encryptData(item.id, secretKey)
-                            )}`)
-                          }}
-                          className="w-8 h-8 flex items-center justify-center bg-amber-100 text-amber-800 text-sm font-medium  rounded-lg dark:bg-amber-900 dark:text-amber-300 hover:bg-amber-600 hover:text-white dark:hover:bg-amber-700 dark:hover:text-white"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                      </Tooltip>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-          </tbody>
-        </table>
+      <div className="hidden xl:block w-full bg-white dark:bg-slate-800">
+        <DataTable
+          columns={columns}
+          data={dataPeserta}
+          currentPage={currentPage}
+          lastPage={lastPage}
+          fromPage={fromPage}
+          toPage={toPage}
+          totalData={totalData}
+          onPrev={handlePrevPage}
+          onNext={handleNextPage}
+        />
       </div>
 
       {/* mobile view */}
@@ -798,21 +887,35 @@ export default function DataPeserta() {
             </div>
 
             {/* ACTION */}
-            <div className="mt-4 flex justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  navigate(`/admin/daftar-peserta/detail-peserta/${encodeURIComponent(
-                    encryptData(item.id, secretKey)
-                  )}`)
-                }}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-600 hover:text-white transition"
-              >
-                <Eye className="w-4 h-4" />
-                Detail
-              </button>
-            </div>
+            <div className="w-full flex items-center justify-center gap-2 px-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigate(
+                          `/admin/daftar-peserta/detail-peserta/${encodeURIComponent(
+                            encryptData(item.id, secretKey)
+                          )}`
+                        )
+                      }}
+                      className="w-8 h-8 flex items-center justify-center 
+          bg-amber-100 text-amber-800 rounded-lg
+          hover:bg-amber-600 hover:text-white
+          dark:bg-amber-900 dark:text-amber-300
+          dark:hover:bg-amber-700 dark:hover:text-white"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
 
+                  <TooltipContent>
+                    <p>Detail Peserta</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
         ))}
       </div>

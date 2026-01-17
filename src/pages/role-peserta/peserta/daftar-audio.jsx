@@ -87,7 +87,7 @@ export function DaftarAudio({ id }) {
   );
 
   const isEmptyMusic =
-    !hasPaidAccess && !approvedMusics
+  !hasPaidAccess && approvedMusics.length === 0;
   // Get Data Musik by ID End
 
 
@@ -282,7 +282,7 @@ export function DaftarAudio({ id }) {
                   className="w-full md:w-auto"
                   onClick={() =>
                     navigate(
-                      `/participant/form/${hasPaidAccess.id}`
+                      `/participant/form/${hasPaidAccess.invoice_id}`
                     )
                   }
                 >

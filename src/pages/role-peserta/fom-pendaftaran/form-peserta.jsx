@@ -16,7 +16,7 @@ export default function FormPeserta() {
     document.title = "Saloka Mencari Musik";
   }, []);
 
-  const { idMusik, } = useParams();
+  const { idInvoice } = useParams();
   const [currentStep, setCurrentStep] = useState(0);
 
   const secretKey = API_URLS.secretKey;
@@ -31,7 +31,7 @@ export default function FormPeserta() {
   //   decryptData(decodeURIComponent(idMusik), secretKey)
   // );
 
- // console.log("id musik",decryptIDmusik);
+ //console.log("id musik",idInvoice);
 
 return (
   <div className="relative w-full overflow-hidden">
@@ -56,7 +56,7 @@ return (
             steps={steps}
             currentStep={currentStep}
             onStepChange={setCurrentStep}
-            idMusik={idMusik}
+            idInvoice={idInvoice}
           />
         </div>
       </div>

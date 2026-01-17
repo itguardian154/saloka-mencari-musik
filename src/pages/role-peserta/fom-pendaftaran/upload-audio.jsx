@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { InfoIcon, Music, ChevronsUpDown, Check, Loader2 } from "lucide-react";
+import { InfoIcon, Music, ChevronsUpDown, Check, Loader2, AlertCircleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +13,7 @@ import API_URLS from "../../../../config";
 import { toast } from "sonner"
 
 
-const UploadAudio = ({ idMusik, onSuccess }) => {
+const UploadAudio = ({ idInvoice, onSuccess }) => {
   const [detailUser, setDetailUser] = useState({
     token: localStorage.getItem("token"),
   });
@@ -24,7 +24,7 @@ const UploadAudio = ({ idMusik, onSuccess }) => {
     });
   }, []);
 
-  //console.log("id musik", idMusik);
+  //console.log("id invoice", idInvoice);
   const [audioURL, setAudioURL] = useState(null);
   const [fileName, setFileName] = useState("");
   const [audioFile, setAudioFile] = useState(null);
@@ -93,6 +93,26 @@ const UploadAudio = ({ idMusik, onSuccess }) => {
     setAudioURL(URL.createObjectURL(file));
   };
 
+  const [errorLink, setErrorLink] = useState("");
+
+  const handleLinkChange = (value) => {
+    handleChange("work_link", value);
+
+    if (!value) {
+      setErrorLink("");
+      return;
+    }
+
+    const driveRegex = /^https?:\/\/(drive|docs)\.google\.com\/.+$/;
+
+    if (!driveRegex.test(value)) {
+      setErrorLink("Link harus berasal dari Google Drive");
+    } else {
+      setErrorLink("");
+    }
+  };
+
+
   /* ===================== SUBMIT ===================== */
   const handleSubmit = async () => {
     if (isLoading) return; // ⛔ cegah submit dobel
@@ -136,7 +156,7 @@ const UploadAudio = ({ idMusik, onSuccess }) => {
 
       // 1️⃣ CREATE MUSIC WORK
       const createRes = await axios.put(
-        `${API_URLS.mencariMusik}/music-works/${idMusik}`,
+        `${API_URLS.mencariMusik}/music-works/${idInvoice}`,
         valueForm,
         {
           headers: {
@@ -145,8 +165,8 @@ const UploadAudio = ({ idMusik, onSuccess }) => {
         }
       );
 
-      const musicWorkId = createRes.data?.data?.id;
-      if (!musicWorkId) {
+      const musicWorkInvoiceId = createRes.data?.data?.invoice_id;
+      if (!musicWorkInvoiceId) {
         throw new Error("ID music work tidak ditemukan");
       }
 
@@ -155,7 +175,7 @@ const UploadAudio = ({ idMusik, onSuccess }) => {
         fd.append("audio", audioFile);
 
         await axios.post(
-          `${API_URLS.mencariMusik}/music-works/${musicWorkId}/upload-audio`,
+          `${API_URLS.mencariMusik}/music-works/${musicWorkInvoiceId}/upload-audio`,
           fd,
           {
             headers: {
@@ -197,7 +217,7 @@ const UploadAudio = ({ idMusik, onSuccess }) => {
     const getDetailDataMusik = async () => {
       try {
         const res = await axios.get(
-          `${API_URLS.mencariMusik}/music-works/${idMusik}`,
+          `${API_URLS.mencariMusik}/music-works/${idInvoice}`,
           {
             headers: {
               Authorization: `Bearer ${detailUser.token}`,
@@ -234,10 +254,10 @@ const UploadAudio = ({ idMusik, onSuccess }) => {
       }
     };
 
-    if (idMusik && detailUser.token) {
+    if (idInvoice && detailUser.token) {
       getDetailDataMusik();
     }
-  }, [idMusik, detailUser.token]);
+  }, [idInvoice, detailUser.token]);
   // Get Data Musik by ID Musik End
 
 
@@ -337,7 +357,7 @@ const UploadAudio = ({ idMusik, onSuccess }) => {
 
           {/* Deskripsi */}
           <div className="w-full flex flex-col gap-2">
-            <Label htmlFor="deskripsi" className="text-emerald-50">Deskripsi</Label>
+            <Label htmlFor="deskripsi" className="text-emerald-50">Deskripsi Lagu</Label>
             <Textarea
               placeholder="Masukkan deskripsi singkat lagu"
               className="min-h-[220px] text-emerald-50"
@@ -384,7 +404,7 @@ const UploadAudio = ({ idMusik, onSuccess }) => {
                   Upload a file
                 </p>
                 <p className="text-xs text-gray-400">
-                  MP3 / WAV • Max 5MB
+                  MP3 / WAV • Max 6MB
                 </p>
               </div>
 
@@ -403,6 +423,31 @@ const UploadAudio = ({ idMusik, onSuccess }) => {
                 </div>
               )}
             </div>
+            <div className="w-full flex flex-col gap-2">
+              <Alert variant="info">
+                <InfoIcon className="-mx-2" />
+                <AlertTitle className="font-semibold">Peringatan</AlertTitle>
+                <AlertDescription>
+                  <ul className="list-inside list-disc text-sm">
+                    <li>
+                      Harap cek lagi file musik Anda. Pastikan sudah sesuai dengan ketentuan,  karena file yang sudah disubmit tidak dapat diubah lagi
+                    </li>
+                    <li>
+                      Lagu bertema “Keceriaan Rekreasi Keluarga” (muatan lagu dapat mengangkat konsep rekreasi keluarga di alam bebas yang diangkat melalui seni, teknologi, budaya, dll secara filosofis, fantasi, momen sesaat, ataupun nostalgia memory)
+                    </li>
+                    <li className="break-all">
+                      Lagu bergenre bebas namun tidak berbentuk jingle
+                    </li>
+                    <li>
+                      Lagu berdurasi 3-5 menit
+                    </li>
+                    <li>
+                      Lagu dikirimkan dalam bentuk demo dengan format MP3 atau WAV. Ukuran file maksimal 6MB
+                    </li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            </div>
           </div>
 
           <div className="w-full flex flex-col gap-2">
@@ -415,28 +460,37 @@ const UploadAudio = ({ idMusik, onSuccess }) => {
               required
               autoComplete="off"
               value={valueForm.work_link}
-              onChange={(e) => handleChange("work_link", e.target.value)}
+              onChange={(e) => handleLinkChange(e.target.value)}
               className="w-full h-11 placeholder:text-sm text-emerald-50"
             />
-          </div>
-          <div className="w-full flex flex-col gap-2">
+            {errorLink && (
+              <p className="text-red-500 text-xs mt-1">
+                {errorLink}
+              </p>
+            )}
             <Alert variant="info">
-              <InfoIcon className="-mx-2 text-emerald-400" />
-              <AlertTitle>Informasi Penting</AlertTitle>
+              <InfoIcon className="-mx-2" />
+              <AlertTitle className="font-semibold">Peringatan</AlertTitle>
               <AlertDescription>
                 <ul className="list-inside list-disc text-sm">
                   <li>
-                    Harap cek lagi file musik dan url google drive Anda. Pastikan sudah sesuai dengan ketentuan
+                    Harap cek lagi link google drive Anda. Pastikan sudah sesuai dengan ketentuan, karena link yang sudah disubmit tidak dapat diubah lagi
+                  </li>
+                  <li>
+                    Pastikan link google drive yang berisi screen record/bukti pembuatan lagu
+                  </li>
+                  <li>
+                    Pastikan screen record/bukti pembuatan lagu dalam format MP4
                   </li>
                   <li className="break-all">
                     Contoh link google drive:
                     {" "}
-                    <span className="text-emerald-300">
+                    <span>
                       https://drive.google.com/drive/folders/1ZoY_H_G3J58HhoCr6c3zVkiDTTbOVu5
                     </span>
                   </li>
                   <li>
-                    Pastikan izin akses google drive Anda sudah terbuka
+                    Pastikan izin akses google drive Anda bisa diakses public (tidak diprivate)
                   </li>
                 </ul>
               </AlertDescription>

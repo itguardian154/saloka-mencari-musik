@@ -2,16 +2,19 @@ import { mediaBanner } from "@/assets/image/banner";
 import { mediaLogo } from "@/assets/image/logo";
 import { useEffect, useState } from "react";
 import SignUpForm from "./signup-form";
+import { TermsAndConditionsDialog } from "./terms-and-conditions";
 
 const SignUpPage = () => {
   useEffect(() => {
     document.title = "Sign Up - Saloka Mencari Musik";
   });
 
-  const [openDialog, setOpenDialog] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [isAgreeTerms, setIsAgreeTerms] = useState(false);
 
-  const handleOpenDialog = () => {
-    setOpenDialog((prev) => (prev === value ? "" : value));
+  const handleOpenDialog = (key) => {
+    setOpenDialog(key);
   };
 
   return (
@@ -23,7 +26,7 @@ const SignUpPage = () => {
               href="/"
               className="flex items-center gap-2 font-medium"
             >
-              <div className="flex h-auto w-40 items-center justify-center rounded-md">
+              <div className="flex h-auto w-48 items-center justify-center rounded-md">
                 <img src={mediaLogo[0]} alt="" />
               </div>
             </a>
@@ -33,6 +36,7 @@ const SignUpPage = () => {
               onClickHandler={() =>
                 handleOpenDialog("terms-and-conditions")
               }
+              termsAccepted={termsAccepted}
             />
           </div>
         </div>
@@ -44,6 +48,13 @@ const SignUpPage = () => {
           />
         </div>
       </section>
+
+      <TermsAndConditionsDialog
+        openDialog={openDialog === "terms-and-conditions"}
+        onClose={() => setOpenDialog("")}
+        termsAccepted={termsAccepted}
+        setTermsAccepted={setTermsAccepted}
+      />
     </>
   );
 }

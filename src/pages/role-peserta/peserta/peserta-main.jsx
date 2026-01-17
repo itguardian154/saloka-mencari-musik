@@ -110,14 +110,14 @@ export default function PesertaMain() {
             </svg>
           ))}
         </div>
-        <div className="col-span-12 lg:col-span-3 pt-6 pl-6">
+        <div className="col-span-12 lg:col-span-3 p-5">
           <div className="rounded-2xl bg-white/85 backdrop-blur-md
         shadow-lg border border-emerald-100">
             <ProfilePeserta id={decryptID} />
           </div>
         </div>
 
-        <div className="col-span-12 lg:col-span-9 p-6">
+        <div className="col-span-12 lg:col-span-9 p-5">
           <div className="rounded-3xl bg-white/90 backdrop-blur-md
         shadow-xl border border-emerald-100">
             <DaftarAudio id={decryptID} />

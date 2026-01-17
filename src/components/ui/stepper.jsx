@@ -12,7 +12,7 @@ import { toast } from "sonner"
 
 const stepIcons = [Music, Video, Check]
 
-export function Stepper({ steps, currentStep, onStepChange, idMusik }) {
+export function Stepper({ steps, currentStep, onStepChange, idInvoice }) {
   const handleSuccess = () => {
     onStepChange(1);
   };
@@ -25,11 +25,11 @@ export function Stepper({ steps, currentStep, onStepChange, idMusik }) {
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
-        return <UploadAudio idMusik={idMusik} onSuccess={handleSuccess} />;
+        return <UploadAudio idInvoice={idInvoice} onSuccess={handleSuccess} />;
       case 1:
         return (
           <Konfirmasi
-            idMusik={idMusik}
+            idInvoice={idInvoice}
             onPrevious={handlePrevious}
             onSuccess={handleSuccess}
           />

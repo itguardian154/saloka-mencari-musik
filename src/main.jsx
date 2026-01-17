@@ -15,6 +15,7 @@ import FormPeserta from './pages/role-peserta/fom-pendaftaran/form-peserta.jsx';
 import { ValidateOtpForm } from './pages/Auth/validate-otp-form.jsx';
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import { Toaster } from 'sonner';
+import EditPeserta from './pages/role-admin/peserta/edit-profile';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -30,13 +31,16 @@ createRoot(document.getElementById('root')).render(
         {/* ADMIN ONLY */}
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
           <Route element={<Layout />}>
-            <Route path="/admin/daftar-peserta" element={<DataPeserta />} />
+            <Route path="/admin/daftar-peserta" element={<DataPeserta />} replace/>
           </Route>
           <Route element={<Layout />}>
             <Route path="/admin/daftar-peserta/detail-peserta/:id" element={<DetailPeserta />} />
           </Route>
+           <Route element={<Layout />}>
+            <Route path="/admin/edit-profile/:id" element={<EditPeserta />} />
+          </Route>
           <Route element={<Layout />}>
-            <Route path="/admin/dashboard" element={<DashboardPeserta />} />
+            <Route path="/admin/dashboard" element={<DashboardPeserta />} replace/>
           </Route>
         </Route>
 
@@ -44,7 +48,7 @@ createRoot(document.getElementById('root')).render(
         <Route element={<ProtectedRoute allowedRoles={["composer"]} />}>
           <Route element={<Navbar />}>
             <Route path="/participant/:id" element={<PesertaMain />} />
-            <Route path="/participant/form/:idMusik" element={<FormPeserta />} />
+            <Route path="/participant/form/:idInvoice" element={<FormPeserta />} />
           </Route>
         </Route>
 

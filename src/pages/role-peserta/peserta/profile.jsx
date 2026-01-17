@@ -1,4 +1,4 @@
-import { Card, CardHeader } from "@/components/ui/card"
+import { CardHeader } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Mail,
@@ -24,8 +24,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Command, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
 export default function ProfilePeserta({ id }) {
 
@@ -200,10 +199,11 @@ export default function ProfilePeserta({ id }) {
           [200, 201].includes(response.status) &&
           response.data?.status === true
         ) {
-          // 🔑 update data asli setelah sukses
-          setDetailPeserta(detailEdit);
+           setDetailPeserta(prev => ({
+          ...prev,        
+          ...detailEdit   
+        }));
 
-          // keluar dari mode edit
           setIsEdit(false);
           setFormEdit(null);
 
@@ -258,7 +258,7 @@ export default function ProfilePeserta({ id }) {
 
                     setIsEdit(true);
                   }}
-                  className="
+                  className="hidden 
                   absolute right-4 top-4 cursor-pointer
                   rounded-full p-2
                   bg-slate-800/60
@@ -284,7 +284,7 @@ export default function ProfilePeserta({ id }) {
               <Button
                 size="sm"
                 variant="outline"
-                className="border-emerald-400/30 text-emerald-200"
+                className="border-emerald-400/30 text-slate-900"
                 onClick={() => {
                   setIsEdit(false);
                   setFormEdit(null);

@@ -1,4 +1,4 @@
-import { useLocation, useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import {
   Card,
   CardContent,
@@ -8,7 +8,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Music, Video, Download } from "lucide-react"
+import { ArrowLeft, Music, Link } from "lucide-react"
 import { useState, useEffect } from "react"
 import API_URLS from "../../../../config";
 import CryptoJS from "crypto-js";
@@ -24,7 +24,7 @@ export default function DetailPeserta() {
   };
 
   const decryptID = decryptData(decodeURIComponent(id), secretKey);
-  console.log(decryptID);
+  //console.log(decryptID);
 
   const [detailUser, setDetailUser] = useState({
     token: localStorage.getItem("token"),
@@ -37,49 +37,17 @@ export default function DetailPeserta() {
     });
   }, []);
 
-  console.log(id);
+  //console.log(id);
   const navigate = useNavigate();
-  const { state } = useLocation();
   const [openAudioIndex, setOpenAudioIndex] = useState(null);
-  const [openLyricIndex, setOpenLyricIndex] = useState(null);
-  const [openDeskripsiIndex, setOpenDeskripsiIndex] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [detailPeserta, setDetailPeserta] = useState({});
-  const [audio, setAudio] = useState([]);
-  const [lyric, setLyric] = useState([]);
-  const [searchData, setSearchData] = useState("");
-  const [pageData, setPageData] = useState(1);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [fromPage, setFromPage] = useState("");
-  const [toPage, setToPage] = useState("");
-  const [lastPage, setLastPage] = useState(1);
-  const [totalData, setTotalData] = useState(0);
-  const [sortBy, setSortBy] = useState("");
-  const [sortOrder, setSortOrder] = useState("");
-  const [itemPerPage, setItemPerPage] = useState(25);
-  const [changeData, setChangeData] = useState(false);
-  const [filterData, setFilterData] = useState({});
-
-  const handleAudioClick = (index) => {
-    setOpenAudioIndex(index === openAudioIndex ? null : index);
-  };
-
-  const handleLyricClick = (index) => {
-    setOpenLyricIndex(index === openLyricIndex ? null : index);
-  };
-
-  const handleDeskripsiClick = (index) => {
-    setOpenDeskripsiIndex(index === openDeskripsiIndex ? null : index);
-  };
 
   const clearData = () => {
     setDetailPeserta(null);
 
   }
-
+  
   // Get Peserta by ID Start
-
-
   useEffect(() => {
     if (!id) return;
 
@@ -112,47 +80,7 @@ export default function DetailPeserta() {
   }, [id]);
 
   // Get Peserta by ID End
-
-
-
-  // dummy fallback (kalau user refresh halaman)
-  // const peserta = state?.peserta || {
-  //     nama: "Mawar",
-  //     usia: "25 - 34 Tahun",
-  //     email: "mawar@mail.com",
-  //     whatsapp: "082142959615",
-  //     domisili: "Semarang",
-  //     lagu: [
-  //         {
-  //             judul: "Cinta Tak Direstui",
-  //             genre: "Pop",
-  //             deskripsi: "Lagu tentang cinta yang terhalang restu Lagu tentang cinta yang terhalang restu Lagu tentang cinta yang terhalang restu Lagu tentang cinta yang terhalang restu Lagu tentang cinta yang terhalang restu Lagu tentang cinta yang terhalang restu",
-  //             lirik: "Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam Aku mencintaimu dalam diam",
-  //             screenRecord: "/dummy/video.mp4",
-  //             fileLagu: "/dummy/audio.mp3",
-
-  //         },
-  //         {
-  //             judul: "Malam Sunyi",
-  //             genre: "Jazz",
-  //             deskripsi: "Nuansa malam yang tenang",
-  //             lirik: "Di bawah lampu kota...",
-  //             screenRecord: "/dummy/video2.mp4",
-  //             fileLagu: "/dummy/audio2.mp3",
-
-  //         },
-  //     ],
-  // }
-
-  const handleDownloadAudio = (url, filename = "lagu") => {
-    const link = document.createElement("a")
-    link.href = url
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-  console.log("detailPeserta:", detailPeserta)
+  //console.log("detailPeserta:", detailPeserta)
 
 
   {/* // ===== FILTER DATA KARYA LAGU VALID ===== */ }
@@ -165,10 +93,8 @@ export default function DetailPeserta() {
     }) || [];
 
 
-
   return (
     <div className="space-y-6">
-
       {/* HEADER */}
       <div className="flex items-center gap-3">
         <Button
@@ -222,7 +148,7 @@ export default function DetailPeserta() {
             <p className="text-muted-foreground">Alamat</p>
             <p className="font-medium">
               {detailPeserta?.district
-                ? `${detailPeserta.district}, ${detailPeserta.city}, ${detailPeserta.province}`
+                ? `${detailPeserta.city}, ${detailPeserta.province}`
                 : "-"}
             </p>
           </div>
@@ -230,155 +156,150 @@ export default function DetailPeserta() {
       </Card>
 
       {/* // ===== RENDER ===== */}
-      
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Karya Lagu ({validMusicWorks.length})
-            </CardTitle>
-          </CardHeader>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            Karya Lagu ({validMusicWorks.length})
+          </CardTitle>
+        </CardHeader>
 
-          <CardContent>
-            {validMusicWorks.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">
-                Belum ada karya lagu yang diunggah.
-              </p>
-            ) : (
-              <div className="space-y-6">
-                {validMusicWorks.map((lagu, index) => (
-                  <div key={lagu.id} className="space-y-4">
+        <CardContent>
+          {validMusicWorks.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">
+              Belum ada karya lagu yang diunggah.
+            </p>
+          ) : (
+            <div className="space-y-6">
+              {validMusicWorks.map((lagu, index) => (
+                <div key={lagu.id} className="space-y-4">
 
-                    {/* JUDUL + STATUS */}
-                    <div className="flex items-start justify-between gap-3">
-                      <h3 className="font-semibold text-base break-words">
-                        {index + 1}. {lagu.title}
-                      </h3>
+                  {/* JUDUL + STATUS */}
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="font-semibold text-base break-words">
+                      {index + 1}. {lagu.title}
+                    </h3>
 
-                      <Badge
-                        className={`rounded-full px-2.5 py-0.5 text-xs whitespace-nowrap
+                    <Badge
+                      className={`rounded-full px-2.5 py-0.5 text-xs whitespace-nowrap
                   ${lagu.status === "submitted"
-                            ? "bg-blue-100 text-blue-700"
-                            : lagu.status === "approved"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
-                      >
-                        {lagu.status}
-                      </Badge>
+                          ? "bg-blue-100 text-blue-700"
+                          : lagu.status === "approved"
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-gray-100 text-gray-600"
+                        }`}
+                    >
+                      {lagu.status}
+                    </Badge>
+                  </div>
+
+                  {/* GENRE */}
+                  {lagu.genre && (
+                    <Badge className="w-fit bg-green-600 text-white text-xs">
+                      {lagu.genre}
+                    </Badge>
+                  )}
+
+                  {/* GRID */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                    {/* KIRI */}
+                    <div className="md:col-span-3 space-y-4 text-sm">
+
+                      {lagu.description && (
+                        <div>
+                          <p className="text-muted-foreground mb-1">
+                            Deskripsi Lagu
+                          </p>
+                          <p className="whitespace-pre-line break-words line-clamp-2">
+                            {lagu.description}
+                          </p>
+                        </div>
+                      )}
+
+                      {lagu.lyrics && (
+                        <div>
+                          <p className="text-muted-foreground mb-1">
+                            Lirik Lagu
+                          </p>
+                          <p className="whitespace-pre-line break-words line-clamp-3">
+                            {lagu.lyrics}
+                          </p>
+                        </div>
+                      )}
+
                     </div>
 
-                    {/* GENRE */}
-                    {lagu.genre && (
-                      <Badge className="w-fit bg-green-600 text-white text-xs">
-                        {lagu.genre}
-                      </Badge>
-                    )}
+                    {/* KANAN */}
+                    <div className="flex flex-col items-end gap-2">
 
-                    {/* GRID */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      {/* BUTTON */}
+                      <div className="flex gap-2 flex-wrap justify-end">
 
-                      {/* KIRI */}
-                      <div className="md:col-span-3 space-y-4 text-sm">
-
-                        {lagu.description && (
-                          <div>
-                            <p className="text-muted-foreground mb-1">
-                              Deskripsi Lagu
-                            </p>
-                            <p className="whitespace-pre-line break-words line-clamp-2">
-                              {lagu.description}
-                            </p>
-                          </div>
-                        )}
-
-                        {lagu.lyrics && (
-                          <div>
-                            <p className="text-muted-foreground mb-1">
-                              Lirik Lagu
-                            </p>
-                            <p className="whitespace-pre-line break-words line-clamp-3">
-                              {lagu.lyrics}
-                            </p>
-                          </div>
-                        )}
-
-                      </div>
-
-                      {/* KANAN */}
-                      <div className="flex flex-col items-end gap-2">
-
-                        {/* BUTTON */}
-                        <div className="flex gap-2 flex-wrap justify-end">
-
-                          {/* AUDIO */}
-                          <Button
-                            size="sm"
-                            disabled={!lagu.audio_link}
-                            onClick={() =>
-                              lagu.audio_link &&
-                              setOpenAudioIndex(
-                                openAudioIndex === index ? null : index
-                              )
-                            }
-                            className="rounded-full text-xs px-2.5 py-1 text-white
+                        {/* AUDIO */}
+                        <Button
+                          size="sm"
+                          disabled={!lagu.audio_link}
+                          onClick={() =>
+                            lagu.audio_link &&
+                            setOpenAudioIndex(
+                              openAudioIndex === index ? null : index
+                            )
+                          }
+                          className="rounded-full text-xs px-2.5 py-1 text-white
                       bg-blue-600 hover:bg-blue-500 disabled:bg-gray-400"
-                          >
-                            <Music className="h-4 w-4 mr-1" />
-                            Musik
-                          </Button>
+                        >
+                          <Music className="h-4 w-4 mr-1" />
+                          Musik
+                        </Button>
 
-                          {/* VIDEO */}
-                          <Button
-                            size="sm"
-                            disabled={!lagu.work_link}
-                            asChild={!!lagu.work_link}
-                            className="rounded-full text-xs px-3 py-1 text-white
+                        {/* VIDEO */}
+                        <Button
+                          size="sm"
+                          disabled={!lagu.work_link}
+                          asChild={!!lagu.work_link}
+                          className="rounded-full text-xs px-3 py-1 text-white
                       bg-amber-500 hover:bg-amber-500
                       disabled:opacity-60 disabled:cursor-not-allowed"
-                          >
-                            {lagu.work_link ? (
-                              <a
-                                href={lagu.work_link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center"
-                              >
-                                <Video className="h-4 w-4 mr-1" />
-                                Video
-                              </a>
-                            ) : (
-                              <span className="flex items-center">
-                                <Video className="h-4 w-4 mr-1" />
-                                Video
-                              </span>
-                            )}
-                          </Button>
-                        </div>
-
-                        {/* AUDIO PLAYER */}
-                        {openAudioIndex === index && lagu.audio_link && (
-                          <div className="flex items-center gap-2 justify-end">
-                            <audio
-                              controls
-                              controlsList="nodownload"
-                              className="max-w-[220px]"
-                              src={lagu.audio_link}
-                            />
-                          </div>
-                        )}
-
+                        >
+                          {lagu.work_link ? (
+                            <a
+                              href={lagu.work_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center"
+                            >
+                              <Link className="h-4 w-4 mr-1" />
+                              Gdrive
+                            </a>
+                          ) : (
+                            <span className="flex items-center">
+                              <Link className="h-4 w-4 mr-1" />
+                              Gdrive
+                            </span>
+                          )}
+                        </Button>
                       </div>
+
+                      {/* AUDIO PLAYER */}
+                      {openAudioIndex === index && lagu.audio_link && (
+                        <div className="flex items-center gap-2 justify-end">
+                          <audio
+                            controls
+                            controlsList="nodownload"
+                            className="max-w-[220px]"
+                            src={lagu.audio_link}
+                          />
+                        </div>
+                      )}
                     </div>
-
-                    <Separator />
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-  
+                  <Separator />
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

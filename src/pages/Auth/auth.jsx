@@ -17,6 +17,14 @@ const AuthPage = () => {
     document.title = "Login - Saloka Mencari Musik";
   });
 
+  useEffect(() => {
+  const lastRoute = localStorage.getItem("last_route");
+  if (lastRoute) {
+    navigate(lastRoute, { replace: true });
+  }
+}, []);
+
+
   const navigate = useNavigate();
   const secretKey = API_URLS.secretKey;
   const [valueForm, setValueForm] = useState({
@@ -71,7 +79,7 @@ const AuthPage = () => {
               href="/"
               className="flex items-center gap-2 font-medium"
             >
-              <div className="flex h-auto w-48 items-center justify-center rounded-md">
+              <div className="flex h-auto w-44 items-center justify-center rounded-md">
                 <img src={mediaLogo[0]} alt="" />
               </div>
             </a>

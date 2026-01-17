@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom"
 import CryptoJS from "crypto-js";
 
 
-export default function Konfirmasi({ idMusik, onPrevious, onSuccess }) {
+export default function Konfirmasi({ idInvoice, onPrevious, onSuccess }) {
   const [detailUser, setDetailUser] = useState({
     token: localStorage.getItem("token"),
   });
@@ -62,7 +62,7 @@ export default function Konfirmasi({ idMusik, onPrevious, onSuccess }) {
     const getDetailDataMusik = async () => {
       try {
         const response = await axios.get(
-          `${API_URLS.mencariMusik}/music-works/${idMusik}`,
+          `${API_URLS.mencariMusik}/music-works/${idInvoice}`,
           {
             headers: {
               Authorization: `Bearer ${detailUser.token}`,
@@ -92,10 +92,10 @@ export default function Konfirmasi({ idMusik, onPrevious, onSuccess }) {
       }
     };
 
-    if (idMusik && detailUser.token) {
+    if (idInvoice && detailUser.token) {
       getDetailDataMusik();
     }
-  }, [idMusik, detailUser.token]);
+  }, [idInvoice, detailUser.token]);
   // Get Data Musik by ID End
 
   /* ===================== SUBMIT ===================== */
@@ -106,7 +106,7 @@ export default function Konfirmasi({ idMusik, onPrevious, onSuccess }) {
       setIsLoading(true);
 
       const createRes = await axios.put(
-        `${API_URLS.mencariMusik}/music-works/${idMusik}`,
+        `${API_URLS.mencariMusik}/music-works/${idInvoice}`,
         valueForm,
         {
           headers: {

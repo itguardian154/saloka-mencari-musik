@@ -6,7 +6,7 @@ import {
   InputOTPSeparator,
   InputOTPSlot,
 } from "@/components/ui/input-otp"
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import API_URLS from "../../../config";
 import CryptoJS from "crypto-js";
@@ -15,6 +15,13 @@ import { toast } from "sonner";
 import { de } from "date-fns/locale";
 
 export function ValidateOtpForm() {
+  useEffect(() => {
+    const lastRoute = localStorage.getItem("last_route");
+    if (lastRoute) {
+      navigate(lastRoute, { replace: true });
+    }
+  }, []);
+
   const [valueOtp, setValueOtp] = useState("");
   const navigate = useNavigate();
   const { phone } = useParams();
@@ -62,12 +69,14 @@ export function ValidateOtpForm() {
 
             if (type_user === "composer") {
               const userId = data.user.id;
+              const participantPath = `/participant/${encodeURIComponent(
+                encryptData(userId, secretKey)
+              )}`;
 
-              navigate(
-                `/participant/${encodeURIComponent(
-                  encryptData(userId, secretKey)
-                )}`
-              );
+              localStorage.setItem("last_route", participantPath);
+
+              navigate(participantPath, { replace: true });
+
             } else if (type_user === "admin") {
               navigate("/admin/daftar-peserta");
             }

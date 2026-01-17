@@ -13,9 +13,17 @@ import axios from "axios";
 import API_URLS from "../../../config";
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 
-const SignUpForm = () => {
+const SignUpForm = ({ onClickHandler, termsAccepted, }) => {
+  useEffect(() => {
+    const lastRoute = localStorage.getItem("last_route");
+    if (lastRoute) {
+      navigate(lastRoute, { replace: true });
+    }
+  }, []);
+
   const navigate = useNavigate();
 
   const [openCombobox, setOpenCombobox] = useState("");
@@ -132,33 +140,53 @@ const SignUpForm = () => {
   // Handle Submit Register Start
   const handleSubmitRegister = (e) => {
     e.preventDefault();
+    Swal.fire({
+      title: "Konfirmasi Registrasi",
+      text: `Apakah kamu yakin ingin melakukan registrasi? Pastikan data yang kamu masukkan sudah benar. Data yang kamu masukkan tidak dapat diubah setelah kamu melakukan registrasi.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya",
+      cancelButtonText: "Batal",
 
-    toast.promise(
-      axios.post(`${API_URLS.mencariMusik}/composers`, {
-        name: valueForm.name,
-        email: valueForm.email,
-        whatsapp: valueForm.whatsapp,
-        province: valueForm.province,
-        city: valueForm.city,
-        age: valueForm.age,
-        district: "-",
-      }),
-      {
-        loading: "Loading...",
-        success: (response) => {
-          if ([200, 201].includes(response.status) && response.data.status === true) {
-            navigate("/");
-            return response.data.message || "Registrasi berhasil!";
+      buttonsStyling: false, // 🔥 PENTING
+
+      customClass: {
+        popup: "rounded-lg",
+        confirmButton:
+          "bg-gossamer-600 text-white px-4 py-2 rounded-md font-medium opacity-100 hover:bg-gossamer-700",
+        cancelButton:
+          "bg-gray-200 text-gray-800 px-4 py-2 rounded-md font-medium opacity-100 hover:bg-gray-300 ml-3",
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        toast.promise(
+          axios.post(`${API_URLS.mencariMusik}/composers`, {
+            name: valueForm.name,
+            email: valueForm.email,
+            whatsapp: valueForm.whatsapp,
+            province: valueForm.province,
+            city: valueForm.city,
+            age: valueForm.age,
+            district: "-",
+          }),
+          {
+            loading: "Loading...",
+            success: (response) => {
+              if ([200, 201].includes(response.status) && response.data.status === true) {
+                navigate("/");
+                return response.data.message || "Registrasi berhasil!";
+              }
+
+              throw new Error(response.data.message || "Registrasi gagal!");
+            },
+            error: (error) =>
+              error?.response?.data?.message ||
+              error?.message ||
+              "Terjadi kesalahan",
           }
-
-          throw new Error(response.data.message || "Registrasi gagal!");
-        },
-        error: (error) =>
-          error?.response?.data?.message ||
-          error?.message ||
-          "Terjadi kesalahan",
+        );
       }
-    );
+    });
   };
   // Handle Submit Register End
 
@@ -386,18 +414,14 @@ const SignUpForm = () => {
           </Alert>
         </div>
         <div className="w-full md:col-span-2 flex items-center space-x-2">
-          <Checkbox
-            id="terms"
-            required
-            className="size-4 data-[state=checked]:border-blue-600 data-[state=checked]:bg-blue-600 data-[state=checked]:text-white dark:data-[state=checked]:border-blue-700 dark:data-[state=checked]:bg-blue-700"
-          />
           <label
             htmlFor="terms"
             className="text-sm peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            Saya menyetujui{" "}
+            Untuk melanjutkan, silakan klik dan setujui{" "}
             <button
-              type="submit"
+              type="button"
+              onClick={onClickHandler}
               className="text-blue-600 hover:text-blue-600/90 hover:underline transition-all duration-150 ease-linear font-bold underline-offset-4"
             >
               Syarat dan Ketentuan
@@ -410,7 +434,7 @@ const SignUpForm = () => {
           variant="default"
           type="submit"
           className="w-full md:col-span-2 mt-4"
-          disabled={!validatedEmail}
+          disabled={!validatedEmail || !termsAccepted}
         >
           Registrasi Sekarang
         </Button>
