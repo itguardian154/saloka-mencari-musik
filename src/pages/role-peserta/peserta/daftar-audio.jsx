@@ -319,7 +319,9 @@ export function DaftarAudio({ id }) {
                 <p className="text-sm font-semibold text-emerald-50">
                   {music.title}
                 </p>
-                <p className="text-xs font-medium text-emerald-400">Jazz</p>
+                <p className="text-xs font-medium text-emerald-400">
+                  {music.genre}
+                </p>
                 <p className="text-xs text-emerald-200/60">
                   {music.description}
                 </p>
