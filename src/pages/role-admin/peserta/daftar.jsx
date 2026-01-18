@@ -307,17 +307,47 @@ export default function DataPeserta() {
 
   // Export Start
   const getExportQuery = () =>
-    `export=excel
-  &province=${filterData.province || ""}
-  &city=${filterData.city || ""}
-  &genre=${filterData.genre || ""}
-  &date_start=${date?.from ? moment(date.from).format("YYYY-MM-DD") : ""}
-  &date_end=${date?.to ? moment(date.to).format("YYYY-MM-DD") : ""}`;
+  `export=excel` +
+  `&province=${encodeURIComponent(filterData.province || "")}` +
+  `&city=${encodeURIComponent(filterData.city || "")}` +
+  `&genre=${encodeURIComponent(filterData.genre || "")}` +
+  `&date_start=${encodeURIComponent(date?.from ? moment(date.from).format("YYYY-MM-DD") : "")}` +
+  `&date_end=${encodeURIComponent(date?.to ? moment(date.to).format("YYYY-MM-DD") : "")}`;
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     const exportUrl = `${API_URLS.mencariMusik}/composers?${getExportQuery()}`;
-    console.log(exportUrl);
-    window.open(exportUrl, "_blank");
+
+    try {
+      const token = localStorage.getItem("token"); // sesuaikan tempat token kamu
+      const res = await axios.get(exportUrl, {
+        responseType: "blob",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        },
+      });
+
+      // ambil nama file dari header kalau ada
+      const disposition = res.headers["content-disposition"];
+      let filename = "composer.xlsx";
+      const match = disposition?.match(/filename="?([^"]+)"?/);
+      if (match?.[1]) filename = match[1];
+
+      const blob = new Blob([res.data], { type: res.headers["content-type"] });
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export gagal:", err);
+      // optional: tampilkan toast
+    }
   };
   // Export End
 
