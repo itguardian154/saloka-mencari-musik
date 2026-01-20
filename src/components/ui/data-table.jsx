@@ -31,16 +31,28 @@ export function DataTable({
   onNext,
 }) {
 
-  const [columnVisibility, setColumnVisibility] = React.useState({})
+  const [columnVisibility, setColumnVisibility] = React.useState(() => {
+    const saved = localStorage.getItem("table-column-visibility")
+    return saved ? JSON.parse(saved) : {}
+  })
 
   const table = useReactTable({
     data,
     columns,
-    state: { columnVisibility },
+    state: {
+      columnVisibility,
+    },
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
   })
+
+  React.useEffect(() => {
+    localStorage.setItem(
+      "table-column-visibility",
+      JSON.stringify(columnVisibility)
+    )
+  }, [columnVisibility])
+
 
   return (
     <div className="space-y-2">
@@ -64,9 +76,10 @@ export function DataTable({
                   <DropdownMenuCheckboxItem
                     key={column.id}
                     checked={column.getIsVisible()}
-                    onCheckedChange={value =>
+                    onCheckedChange={(value) =>
                       column.toggleVisibility(!!value)
                     }
+                    onSelect={(e) => e.preventDefault()}
                   >
                     {typeof column.columnDef.header === "function"
                       ? column.id
@@ -74,7 +87,6 @@ export function DataTable({
                   </DropdownMenuCheckboxItem>
                 ))}
             </DropdownMenuContent>
-
           </DropdownMenu>
 
           {/* PAGINATION CONTROL */}

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Check, ChevronsUpDown, Search, Eye, ChevronDown, ChevronUp, Edit, ChevronRight, Filter, FileSpreadsheet, RotateCcw } from "lucide-react";
+import { Check, ChevronsUpDown, Search, Eye, ChevronDown, ChevronUp, Edit, ChevronRight, Filter, FileSpreadsheet, RotateCcw, ChevronLeft, ChevronsRight } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { Calendar } from "@/components/ui/calendar"
 import { Calendar as CalendarIcon } from "lucide-react"
@@ -307,12 +307,12 @@ export default function DataPeserta() {
 
   // Export Start
   const getExportQuery = () =>
-  `export=excel` +
-  `&province=${encodeURIComponent(filterData.province || "")}` +
-  `&city=${encodeURIComponent(filterData.city || "")}` +
-  `&genre=${encodeURIComponent(filterData.genre || "")}` +
-  `&date_start=${encodeURIComponent(date?.from ? moment(date.from).format("YYYY-MM-DD") : "")}` +
-  `&date_end=${encodeURIComponent(date?.to ? moment(date.to).format("YYYY-MM-DD") : "")}`;
+    `export=excel` +
+    `&province=${encodeURIComponent(filterData.province || "")}` +
+    `&city=${encodeURIComponent(filterData.city || "")}` +
+    `&genre=${encodeURIComponent(filterData.genre || "")}` +
+    `&date_start=${encodeURIComponent(date?.from ? moment(date.from).format("YYYY-MM-DD") : "")}` +
+    `&date_end=${encodeURIComponent(date?.to ? moment(date.to).format("YYYY-MM-DD") : "")}`;
 
   const handleExportExcel = async () => {
     const exportUrl = `${API_URLS.mencariMusik}/composers?${getExportQuery()}`;
@@ -783,50 +783,6 @@ export default function DataPeserta() {
         </div>
       )}
 
-      <div className="w-full flex flex-wrap items-center justify-between py-1 sm:gap-3 border-slate-100 dark:border-slate-700">
-        {/* Kiri: Rows per page & Page info */}
-        {/* <div className="flex flex-wrap items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
-          <span className="whitespace-nowrap">Rows per page</span>
-          <select
-            id="show-entries"
-            onChange={(e) => setItemPerPage(e.target.value)}
-            value={itemPerPage}
-            className="over:outline-none text-xs cursor-pointer dark:bg-slate-800 bg-white border-none text-gray-900 active:ring-0 active:border-none active:outline-none rounded-lg focus:ring-0 block w-fit p-2.5  dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-0 dark:focus:border-none"
-          >
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="75">75</option>
-            <option value="100">100</option>
-          </select>
-          <span className="font-semibold whitespace-nowrap">
-            Page {currentPage} of {lastPage}
-          </span>
-        </div> */}
-
-        {/* Kanan: Pagination Control */}
-        {/* <div className="flex items-center gap-2 text-xs text-slate-700 dark:text-slate-200">
-          <span className="whitespace-nowrap">
-            {fromPage || "0"}-{toPage || "0"} of {totalData} Row
-          </span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => handlePrevPage()}
-              type="button"
-              className="cursor-pointer p-1 rounded-md bg-green-50 hover:bg-green-100 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors"
-            >
-              <ChevronLeft className="w-2.5 h-2.5" />
-            </button>
-            <button
-              onClick={() => handleNextPage()}
-              type="button"
-              className="cursor-pointer p-1 rounded-md bg-green-50 hover:bg-green-100 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors"
-            >
-              <ChevronRight className="w-2.5 h-2.5" />
-            </button>
-          </div>
-        </div> */}
-      </div>
-
       {/* desktop view */}
       <div className="hidden xl:block w-full bg-white dark:bg-slate-800">
         <DataTable
@@ -841,114 +797,203 @@ export default function DataPeserta() {
           onNext={handleNextPage}
         />
       </div>
-
       {/* mobile view */}
-      <div className="block lg:hidden space-y-4">
+      {/* MOBILE PAGINATION */}
+      {!loadingData && totalData > 0 && (
+        <div className="flex items-center justify-between px-4 py-3 
+    bg-white dark:bg-slate-800 rounded-lg border mt-4 xl:hidden">
+
+          <span className="text-xs text-gray-500">
+            {fromPage}–{toPage} of {totalData}
+          </span>
+
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={currentPage === 1}
+              onClick={handlePrevPage}
+            >
+              <ChevronLeft className="w-3 h-3" />
+            </Button>
+
+            <span className="px-3 text-xs font-medium">
+              {currentPage} / {lastPage}
+            </span>
+
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={currentPage === lastPage}
+              onClick={handleNextPage}
+            >
+              <ChevronRight className="w-3 h-3" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <div className="block xl:hidden space-y-4">
         {!loadingData && dataPeserta?.map((item) => (
           <div
             key={item.id}
-            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm"
+            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 
+      rounded-xl p-4 shadow-sm space-y-4"
           >
-
             {/* HEADER */}
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
-                  {item?.name}
+                  {item.name}
                 </p>
                 <p className="text-xs text-gray-500">
-                  ID: 28122025
+                  {new Date(item.created_at).toLocaleDateString("id-ID", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
                 </p>
               </div>
 
-              {item?.music_works?.[0]?.status === "submitted" && (
-                <span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full dark:bg-blue-900 dark:text-blue-300">
-                  Submitted
+              {/* STATUS */}
+              {item?.music_works?.[0]?.status && (
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full capitalize
+            ${item.music_works[0].status === "approved"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : item.music_works[0].status === "submitted"
+                        ? "bg-sky-100 text-sky-800"
+                        : "bg-amber-100 text-amber-800"
+                    }`}
+                >
+                  {item.music_works[0].status}
                 </span>
               )}
-
-              {item?.music_works?.[0]?.status === "approved" && (
-                <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-0.5 rounded-full dark:bg-emerald-900 dark:text-emerald-300">
-                  Approved
-                </span>
-              )}
-
             </div>
 
             {/* DATA UTAMA */}
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">WhatsApp</span>
-                <span>{item?.whatsapp}</span>
+                <span>{item.whatsapp || "-"}</span>
               </div>
 
               <div className="flex justify-between items-start gap-2">
                 <span className="text-gray-500 shrink-0">Email</span>
-                <span className="text-right break-words max-w-[15ch] sm:max-w-none">
-                  {item?.email}
+                <span className="text-right break-all">
+                  {item.email || "-"}
                 </span>
               </div>
-
 
               <div className="flex justify-between items-start gap-2">
                 <span className="text-gray-500 shrink-0">Alamat</span>
-                <span className="text-right break-words max-w-[20ch] sm:max-w-none">
-                  {item?.district}, {item?.city}, {item?.province}
+                <span className="text-right break-words max-w-[18ch]">
+                  {item.city}, {item.province}
                 </span>
               </div>
-
             </div>
 
             {/* DETAIL KARYA */}
-            <div className="mt-4 border-t pt-3 space-y-2 text-sm">
-              <p className="font-medium text-gray-700 dark:text-gray-200">
+            <div className="border-t pt-3 space-y-3">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
                 Detail Karya
               </p>
 
-              <div className="flex justify-between">
-                <span className="text-gray-500">Judul</span>
-                <span>{item?.music_works?.[0]?.title}</span>
-              </div>
+              {item.music_works?.length ? (
+                item.music_works.map((w, idx) => (
+                  <div
+                    key={w.id}
+                    className="p-3 rounded-lg border bg-slate-50 dark:bg-slate-700 text-xs space-y-1"
+                  >
+                    <p className="font-medium text-sm">
+                      {idx + 1}. {w.title || "-"}
+                    </p>
 
-              <div className="flex justify-between">
-                <span className="text-gray-500">Genre</span>
-                <span>{item?.music_works?.[0]?.genre}</span>
-              </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Genre</span>
+                      <span>{w.genre || "-"}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Invoice</span>
+                      <span className="break-all">{w.invoice_id || "-"}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Payment</span>
+                      <span>{w.payment_method || "-"}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-500">Status</span>
+                      <span
+                        className={`capitalize px-2 py-0.5 rounded-full
+                  ${w.status === "approved"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : w.status === "submitted"
+                              ? "bg-sky-100 text-sky-800"
+                              : "bg-amber-100 text-amber-800"
+                          }`}
+                      >
+                        {w.status}
+                      </span>
+                    </div>
+
+                    {/* RE-GENERATE */}
+                    {w.status === "draft" && w.payment_status === "expired" && (
+                      <button
+                        onClick={() => handleReGenerate(w.composer_id)}
+                        className="mt-2 w-full text-xs py-1 rounded-md 
+                  bg-sky-600 hover:bg-sky-700 text-white"
+                      >
+                        Re-generate Karya
+                      </button>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-gray-500">Tidak ada karya</p>
+              )}
             </div>
 
             {/* ACTION */}
-            <div className="w-full flex items-center justify-center gap-2 px-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigate(
-                          `/admin/daftar-peserta/detail-peserta/${encodeURIComponent(
-                            encryptData(item.id, secretKey)
-                          )}`
-                        )
-                      }}
-                      className="w-8 h-8 flex items-center justify-center 
+            <div className="flex justify-center gap-3 pt-2">
+              <button
+                onClick={() =>
+                  navigate(
+                    `/admin/daftar-peserta/detail-peserta/${encodeURIComponent(
+                      encryptData(item.id, secretKey)
+                    )}`
+                  )
+                }
+                className="flex items-center gap-1 px-3 py-1.5 text-xs
           bg-amber-100 text-amber-800 rounded-lg
-          hover:bg-amber-600 hover:text-white
-          dark:bg-amber-900 dark:text-amber-300
-          dark:hover:bg-amber-700 dark:hover:text-white"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
-                  </TooltipTrigger>
+          hover:bg-amber-600 hover:text-white"
+              >
+                <Eye className="w-4 h-4" />
+                Detail
+              </button>
 
-                  <TooltipContent>
-                    <p>Detail Peserta</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <button
+                onClick={() =>
+                  navigate(
+                    `/admin/edit-profile/${encodeURIComponent(
+                      encryptData(item.id, secretKey)
+                    )}`
+                  )
+                }
+                className="flex items-center gap-1 px-3 py-1.5 text-xs
+          bg-sky-100 text-sky-800 rounded-lg
+          hover:bg-sky-600 hover:text-white"
+              >
+                <Edit className="w-4 h-4" />
+                Edit
+              </button>
             </div>
           </div>
         ))}
       </div>
+
 
     </>
   )

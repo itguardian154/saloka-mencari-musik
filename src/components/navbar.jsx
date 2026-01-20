@@ -7,6 +7,7 @@ import axios from "axios"
 import API_URLS from "../../config"
 import { useEffect, useState } from "react"
 import Swal from "sweetalert2"
+import { useLogout } from "@/hooks/useLogout"
 
 const Navbar = () => {
   const [detailUser, setDetailUser] = useState({
@@ -19,63 +20,12 @@ const Navbar = () => {
     });
   }, []);
 
+  const logout = useLogout()
+
   const adminWhatsapp =
     "https://wa.me/6287838890777?text=Halo%20Admin,%20saya%20butuh%20bantuan."
 
   const navigate = useNavigate()
-
-  const handleLogout = async () => {
-    const result = await Swal.fire({
-      title: "Konfirmasi Keluar",
-      text: "Apakah kamu yakin ingin keluar dari akun ini?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Ya, Keluar",
-      cancelButtonText: "Batal",
-
-      buttonsStyling: false, 
-
-      customClass: {
-        popup: "rounded-lg",
-        confirmButton:
-          "bg-red-600 text-white px-4 py-2 rounded-md font-medium hover:bg-red-700",
-        cancelButton:
-          "bg-gray-200 text-gray-800 px-4 py-2 rounded-md font-medium hover:bg-gray-300 ml-3",
-      },
-    })
-
-    if (!result.isConfirmed) return
-
-    try {
-      const token = detailUser.token
-
-      if (token) {
-        await axios({
-          method: "POST",
-          url: `${API_URLS.mencariMusik}/auth/logout`,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-      }
-
-      // Bersihkan storage
-      localStorage.removeItem("token")
-      localStorage.removeItem("type_user")
-      localStorage.removeItem("last_route")
-
-      navigate("/", { replace: true })
-    } catch (error) {
-      console.error("Logout error:", error)
-
-      // Tetap logout di frontend walaupun API error
-      localStorage.removeItem("token")
-      localStorage.removeItem("type_user")
-      localStorage.removeItem("last_route")
-
-      navigate("/", { replace: true })
-    }
-  }
 
 
   return (
@@ -104,7 +54,7 @@ const Navbar = () => {
 
             {/* LOGOUT */}
             <button
-              onClick={handleLogout}
+              onClick={logout}
               className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-500
                 text-red-600 hover:text-white
                 hover:bg-red-600

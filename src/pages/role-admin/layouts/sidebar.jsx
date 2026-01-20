@@ -1,4 +1,5 @@
 import { mediaLogo } from "@/assets/image/logo"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import {
   Sidebar,
   SidebarHeader,
@@ -8,8 +9,8 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from "@/components/ui/sidebar"
-
-import { Home, Calendar, Inbox, Settings, User } from "lucide-react"
+import { useLogout } from "@/hooks/useLogout"
+import { Home, LogOut, User } from "lucide-react"
 import { Link } from "react-router-dom"
 
 // contoh dummy data
@@ -19,6 +20,8 @@ const menuItems = [
 ]
 
 export function AppSidebar() {
+  const logout = useLogout()
+
   return (
     <Sidebar variant="inset">
       {/* HEADER */}
@@ -62,13 +65,21 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
 
+      {/* LOGOUT */}
+      <SidebarMenuItem>
+        <SidebarMenuButton onClick={logout}>
+          <LogOut className="mr-2 h-4 w-4 text-red-600" />
+          <span className="text-red-600">Keluar</span>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
       {/* FOOTER */}
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton>
               <span className="text-sm text-muted-foreground">
-                © 2025 Saloka Mencari Musik
+                © 2026 Saloka Mencari Musik
               </span>
             </SidebarMenuButton>
           </SidebarMenuItem>

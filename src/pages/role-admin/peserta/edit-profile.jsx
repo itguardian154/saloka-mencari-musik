@@ -150,7 +150,10 @@ export default function EditPeserta() {
                 type="text"
                 id="whatsapp"
                 value={valueForm.whatsapp}
-                onChange={(e) => setValueForm({ ...valueForm, whatsapp: e.target.value })}
+                onChange={(e) => {
+                  const onlyNumber = e.target.value.replace(/[^0-9]/g, "");
+                  setValueForm({ ...valueForm, whatsapp: onlyNumber });
+                }}
                 placeholder="Masukkan whatsapp"
                 autoComplete="off"
               />
