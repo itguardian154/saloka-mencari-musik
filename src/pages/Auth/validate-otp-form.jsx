@@ -150,7 +150,7 @@ export function ValidateOtpForm() {
       </div>
 
       <div className="text-center text-sm text-muted-foreground">
-        © 2025 Saloka Theme Park
+        © 2026 Saloka Theme Park
       </div>
     </section>
   );

@@ -17,6 +17,8 @@ import axios from "axios";
 export default function DetailPeserta() {
   const { id } = useParams();
   const secretKey = API_URLS.secretKey;
+  const [expandedLyrics, setExpandedLyrics] = useState(false);
+  const [expandedDescription, setExpandedDescription] = useState(false);
   const decryptData = (data, secretKey) => {
     const bytes = CryptoJS.AES.decrypt(data, secretKey);
     const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
@@ -46,7 +48,7 @@ export default function DetailPeserta() {
     setDetailPeserta(null);
 
   }
-  
+
   // Get Peserta by ID Start
   useEffect(() => {
     if (!id) return;
@@ -210,20 +212,44 @@ export default function DetailPeserta() {
                           <p className="text-muted-foreground mb-1">
                             Deskripsi Lagu
                           </p>
-                          <p className="whitespace-pre-line break-words line-clamp-2">
+
+                          <p
+                            className={`whitespace-pre-line break-words transition-all duration-300 ${expandedDescription ? "" : "line-clamp-3"
+                              }`}
+                          >
                             {lagu.description}
                           </p>
+
+                          <button
+                            type="button"
+                            onClick={() => setExpandedDescription(!expandedDescription)}
+                            className="mt-2 text-xs text-blue-500 hover:underline"
+                          >
+                            {expandedDescription ? "Show Less" : "Show More"}
+                          </button>
                         </div>
                       )}
 
                       {lagu.lyrics && (
-                        <div>
+                        <div className="mt-4">
                           <p className="text-muted-foreground mb-1">
                             Lirik Lagu
                           </p>
-                          <p className="whitespace-pre-line break-words line-clamp-3">
+
+                          <p
+                            className={`whitespace-pre-line break-words transition-all duration-300 ${expandedLyrics ? "" : "line-clamp-6"
+                              }`}
+                          >
                             {lagu.lyrics}
                           </p>
+
+                          <button
+                            type="button"
+                            onClick={() => setExpandedLyrics(!expandedLyrics)}
+                            className="mt-2 text-xs text-blue-500 hover:underline"
+                          >
+                            {expandedLyrics ? "Show Less" : "Show More"}
+                          </button>
                         </div>
                       )}
 

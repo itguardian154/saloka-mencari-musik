@@ -16,6 +16,13 @@ import { ValidateOtpForm } from './pages/Auth/validate-otp-form.jsx';
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import { Toaster } from 'sonner';
 import EditPeserta from './pages/role-admin/peserta/edit-profile';
+import { PenutupView } from './pages/role-peserta/peserta/penutup';
+
+const isAfterLaunchDate = () => {
+  const launchDate = new Date("2026-03-01T00:00:00+07:00");
+  const now = new Date();
+  return now >= launchDate;
+};
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -24,23 +31,27 @@ createRoot(document.getElementById('root')).render(
       <Routes>
 
         {/* PUBLIC */}
-        <Route path="/" element={<AuthPage />} />
+        <Route
+          path="/"
+          element={isAfterLaunchDate() ? <PenutupView /> : <AuthPage />}
+        />
+        <Route path="/admin/SMM" element={<AuthPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/validate-otp/:phone" element={<ValidateOtpForm />} />
 
         {/* ADMIN ONLY */}
         <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
           <Route element={<Layout />}>
-            <Route path="/admin/daftar-peserta" element={<DataPeserta />} replace/>
+            <Route path="/admin/daftar-peserta" element={<DataPeserta />} replace />
           </Route>
           <Route element={<Layout />}>
             <Route path="/admin/daftar-peserta/detail-peserta/:id" element={<DetailPeserta />} />
           </Route>
-           <Route element={<Layout />}>
+          <Route element={<Layout />}>
             <Route path="/admin/edit-profile/:id" element={<EditPeserta />} />
           </Route>
           <Route element={<Layout />}>
-            <Route path="/admin/dashboard" element={<DashboardPeserta />} replace/>
+            <Route path="/admin/dashboard" element={<DashboardPeserta />} replace />
           </Route>
         </Route>
 
